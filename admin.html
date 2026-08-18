@@ -1,0 +1,857 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>CoDevelop — Administration Console</title>
+<meta name="robots" content="noindex" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#0d1f30;--navy-2:#13293d;--navy-3:#0a1826;--sb:#0c1c2b;
+    --ink:#1c2733;--muted:#5c6a78;--faint:#8695a4;
+    --ground:#eef2f6;--card:#ffffff;--line:#e2e8ef;--line-2:#eef2f6;
+    --bronze:#a9782f;--bronze-2:#c19542;--bronze-soft:#f5eddd;
+    --green:#2f7d5b;--green-soft:#e6f2ec;
+    --blue:#2b6cb0;--blue-soft:#e9f1f9;--amber:#9a6b18;--amber-soft:#f8efd9;
+    --red:#b23b2c;--red-soft:#fbe9e6;--grey-soft:#eef1f4;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{overflow-x:hidden}
+  body{font-family:'Inter',system-ui,sans-serif;color:var(--ink);background:var(--ground);font-size:13.5px;line-height:1.5}
+  .disp{font-family:'Fraunces',Georgia,serif;font-weight:600}
+  a{color:inherit;text-decoration:none}
+  button{font-family:inherit;cursor:pointer}
+  input,select,textarea{font-family:inherit;font-size:13.5px;width:100%;border:1.5px solid var(--line);border-radius:8px;padding:9px 11px;background:#fff;color:var(--ink)}
+  input:focus,select:focus,textarea:focus{outline:2px solid var(--bronze-2);outline-offset:1px;border-color:var(--bronze-2)}
+  label{display:block;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:5px}
+  .num{font-variant-numeric:tabular-nums}
+  .btn{display:inline-flex;align-items:center;gap:6px;border:0;font-weight:600;font-size:13px;border-radius:8px;padding:9px 15px;transition:.14s}
+  .btn:disabled{opacity:.45;cursor:not-allowed}
+  .btn-bronze{background:var(--bronze);color:#fff}.btn-bronze:hover:not(:disabled){background:#946a29}
+  .btn-navy{background:var(--navy);color:#fff}.btn-navy:hover:not(:disabled){background:var(--navy-2)}
+  .btn-ghost{background:#fff;border:1.5px solid var(--line);color:var(--ink)}.btn-ghost:hover:not(:disabled){border-color:var(--bronze)}
+  .btn-green{background:var(--green);color:#fff}
+  .btn-red{background:var(--red-soft);color:var(--red);border:1.5px solid #f0cfc9}
+  .btn.sm{padding:6px 11px;font-size:12px}
+  .btn.xs{padding:4px 9px;font-size:11.5px}
+  .pill{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;white-space:nowrap}
+  .pill:before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+  .good{background:var(--green-soft);color:var(--green)}.prog{background:var(--blue-soft);color:var(--blue)}
+  .attn{background:var(--amber-soft);color:var(--amber)}.bad{background:var(--red-soft);color:var(--red)}.neu{background:var(--grey-soft);color:var(--muted)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px}
+  .pad{padding:18px}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th{text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--faint);font-weight:700;padding:0 12px 10px;border-bottom:1px solid var(--line)}
+  td{padding:11px 12px;border-bottom:1px solid var(--line-2);vertical-align:middle}
+  tr:last-child td{border-bottom:0}
+  td b{color:var(--navy)}
+  .tblwrap{overflow-x:auto}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .between{justify-content:space-between}
+  .grid{display:grid;gap:14px}
+
+  /* login */
+  #login{min-height:100vh;display:grid;place-items:center;background:radial-gradient(1200px 600px at 70% -10%,#16324a,var(--navy-3));padding:20px}
+  .loginbox{width:100%;max-width:440px}
+  .lb-brand{display:flex;align-items:center;gap:11px;margin-bottom:18px}
+  .lb-logo{width:42px;height:42px;border-radius:10px;background:linear-gradient(135deg,#16324a,#0a1826);border:1px solid rgba(201,149,66,.35);display:grid;place-items:center;color:var(--bronze-2);font-family:'Fraunces',serif;font-size:21px}
+  .lb-brand b{color:#fff;font-family:'Fraunces',serif;font-size:19px;display:block}
+  .lb-brand small{color:#9db0c1;font-size:10px;letter-spacing:.16em;text-transform:uppercase}
+  .loginbox .card{padding:22px}
+  .loginbox h1{font-size:18px;color:var(--navy);margin-bottom:3px}
+  .loginbox p.sub{color:var(--muted);font-size:12.5px;margin-bottom:16px}
+  .rolegrid{display:grid;gap:9px}
+  .roleopt{display:flex;align-items:center;gap:12px;padding:12px;border:1.5px solid var(--line);border-radius:10px;cursor:pointer;transition:.14s}
+  .roleopt:hover{border-color:var(--bronze);background:#fffdf8}
+  .roleopt .ic{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;font-size:16px;flex:none}
+  .roleopt b{color:var(--navy);font-size:13.5px}.roleopt span{color:var(--muted);font-size:11.5px}
+
+  /* shell */
+  #app{display:none}
+  .shell{display:grid;grid-template-columns:236px 1fr;min-height:100vh}
+  .sidebar{background:var(--sb);color:#c3d0dc;position:sticky;top:0;height:100vh;overflow-y:auto;display:flex;flex-direction:column}
+  .sb-brand{display:flex;align-items:center;gap:10px;padding:16px 18px;border-bottom:1px solid rgba(255,255,255,.07)}
+  .sb-brand .lb-logo{width:34px;height:34px;font-size:17px}
+  .sb-brand b{color:#fff;font-family:'Fraunces',serif;font-size:15px;line-height:1}
+  .sb-brand small{color:#8aa0b3;font-size:8.5px;letter-spacing:.14em;text-transform:uppercase}
+  .navsec{padding:12px 12px 2px}
+  .navsec .lbl{font-size:9.5px;text-transform:uppercase;letter-spacing:.13em;color:#607789;padding:0 8px 6px;font-weight:700}
+  .navitem{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;color:#b7c6d4;font-size:13px;font-weight:500;cursor:pointer;margin-bottom:2px}
+  .navitem:hover{background:rgba(255,255,255,.05);color:#fff}
+  .navitem.on{background:var(--bronze);color:#fff}
+  .navitem .ic{width:17px;text-align:center;font-size:14px}
+  .navitem .bdg{margin-left:auto;background:rgba(255,255,255,.14);color:#fff;font-size:10px;font-weight:700;padding:1px 7px;border-radius:20px}
+  .navitem.on .bdg{background:rgba(255,255,255,.25)}
+  .sb-foot{margin-top:auto;padding:12px;border-top:1px solid rgba(255,255,255,.07)}
+  .sb-user{display:flex;align-items:center;gap:9px;padding:6px 8px}
+  .sb-user .av{width:30px;height:30px;border-radius:50%;background:var(--bronze);color:#fff;display:grid;place-items:center;font-weight:700;font-size:12px;flex:none}
+  .sb-user b{color:#fff;font-size:12.5px;display:block;line-height:1.2}.sb-user span{color:#8aa0b3;font-size:10.5px}
+
+  .main{min-width:0;display:flex;flex-direction:column}
+  .topbar{background:#fff;border-bottom:1px solid var(--line);padding:11px 22px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:20}
+  .topbar .search{flex:1;max-width:420px;position:relative}
+  .topbar .search input{padding-left:32px;background:var(--ground);border-color:transparent}
+  .topbar .search:before{content:"⌕";position:absolute;left:11px;top:7px;color:var(--faint);font-size:16px}
+  .ro-badge{font-size:10.5px;font-weight:700;color:var(--amber);background:var(--amber-soft);padding:3px 9px;border-radius:20px}
+  .content{padding:22px;max-width:1240px;width:100%}
+  .pagehead{margin-bottom:16px}
+  .pagehead h1{font-size:22px;color:var(--navy)}
+  .pagehead p{color:var(--muted);font-size:13px}
+  .breadcrumb{font-size:11.5px;color:var(--faint);margin-bottom:4px}
+
+  .kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+  .kpi{background:#fff;border:1px solid var(--line);border-radius:11px;padding:14px}
+  .kpi .n{font-family:'Fraunces',serif;font-size:24px;color:var(--navy);line-height:1}
+  .kpi .n.br{color:var(--bronze)}.kpi .n.gr{color:var(--green)}.kpi .n.rd{color:var(--red)}
+  .kpi .l{font-size:11px;color:var(--muted);margin-top:5px}
+  .kpi .d{font-size:10.5px;margin-top:3px;color:var(--faint)}
+
+  .tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:14px;flex-wrap:wrap}
+  .tab{padding:8px 13px;font-size:13px;font-weight:600;color:var(--muted);border-bottom:2px solid transparent;background:none;border-top:0;border-left:0;border-right:0}
+  .tab.on{color:var(--navy);border-bottom-color:var(--bronze)}
+
+  .av-sm{width:28px;height:28px;border-radius:50%;background:var(--navy);color:#fff;display:inline-grid;place-items:center;font-size:11px;font-weight:700;flex:none}
+
+  /* drawer */
+  .scrim{display:none;position:fixed;inset:0;background:rgba(13,31,48,.5);z-index:60;backdrop-filter:blur(2px)}
+  .drawer{position:fixed;top:0;right:0;bottom:0;width:min(560px,100%);background:var(--ground);z-index:61;transform:translateX(100%);transition:transform .22s ease;display:flex;flex-direction:column;box-shadow:-16px 0 40px rgba(0,0,0,.2)}
+  .drawer.open{transform:translateX(0)}
+  .scrim.open{display:block}
+  .dw-head{background:#fff;border-bottom:1px solid var(--line);padding:15px 18px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .dw-head h3{font-size:16px;color:var(--navy)}
+  .dw-body{overflow-y:auto;padding:18px;flex:1}
+  .dw-foot{background:#fff;border-top:1px solid var(--line);padding:12px 18px;display:flex;gap:8px;justify-content:flex-end}
+  .field{margin-bottom:13px}
+  .sec-title{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--bronze);font-weight:700;margin:16px 0 8px}
+  .kv{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--line-2);font-size:13px}
+  .kv b{color:var(--navy)}
+
+  /* media / uploader */
+  .dropzone{border:2px dashed #cdd8e2;border-radius:12px;background:#fff;padding:26px;text-align:center;transition:.14s;cursor:pointer}
+  .dropzone:hover,.dropzone.drag{border-color:var(--bronze);background:#fffdf8}
+  .dropzone .big{font-size:30px}
+  .dropzone h4{font-size:14px;color:var(--navy);margin:6px 0 2px}
+  .dropzone p{font-size:12px;color:var(--muted)}
+  .thumbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin-top:12px}
+  .thumb{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#fff;position:relative}
+  .thumb .im{aspect-ratio:4/3;background:#dde5ec center/cover no-repeat}
+  .thumb .cap{padding:6px 8px}
+  .thumb .cap input{font-size:11px;padding:4px 6px;border-color:var(--line-2)}
+  .thumb .x{position:absolute;top:5px;right:5px;width:22px;height:22px;border-radius:6px;background:rgba(13,31,48,.72);color:#fff;border:0;font-size:12px;display:grid;place-items:center}
+  .thumb .star{position:absolute;top:5px;left:5px;background:rgba(255,255,255,.9);border:0;border-radius:6px;font-size:11px;padding:2px 6px;font-weight:700;color:var(--bronze)}
+  .thumb .star.on{background:var(--bronze);color:#fff}
+  .stagecard{border:1px solid var(--line);border-radius:11px;background:#fff;padding:13px;margin-bottom:10px}
+  .stagecard .sh{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
+  .stagecard .sh b{color:var(--navy)}
+  .cover{aspect-ratio:16/7;border-radius:12px;background:#dde5ec center/cover no-repeat;position:relative;display:flex;align-items:flex-end;padding:12px;color:#fff;overflow:hidden}
+  .cover:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent,rgba(0,0,0,.45))}
+  .cover .ct{position:relative;z-index:1}
+  .medlist{display:flex;flex-direction:column;gap:4px}
+  .medrow{display:flex;align-items:center;gap:10px;padding:9px 11px;border:1px solid var(--line);border-radius:10px;background:#fff;cursor:pointer}
+  .medrow:hover{border-color:var(--bronze)}
+  .medrow.on{border-color:var(--bronze);background:#fffdf8}
+  .medrow .mini{width:44px;height:34px;border-radius:6px;background:#dde5ec center/cover no-repeat;flex:none}
+  .medrow b{color:var(--navy);font-size:13px}.medrow span{font-size:11px;color:var(--muted)}
+
+  /* toast */
+  #toasts{position:fixed;right:16px;bottom:16px;z-index:90;display:flex;flex-direction:column;gap:8px;max-width:340px}
+  .toast{background:var(--navy);color:#fff;padding:11px 14px;border-radius:10px;font-size:12.5px;box-shadow:0 12px 30px rgba(0,0,0,.28);border-left:4px solid var(--bronze-2)}
+  .toast.ok{border-left-color:#57c98a}.toast.err{border-left-color:#e8836f}
+
+  .matrix td,.matrix th{text-align:center}
+  .matrix td:first-child,.matrix th:first-child{text-align:left}
+  .dot-yes{color:var(--green);font-weight:800}.dot-no{color:#c9d3db}
+  .note-item{border-left:3px solid var(--line);padding:6px 0 6px 11px;margin-bottom:8px}
+  .note-item .m{font-size:10.5px;color:var(--faint)}
+  .toggle{width:38px;height:22px;border-radius:20px;background:#cdd8e2;position:relative;border:0;transition:.14s;flex:none}
+  .toggle.on{background:var(--green)}
+  .toggle:after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:.14s}
+  .toggle.on:after{left:18px}
+  .hint{font-size:11.5px;color:var(--muted)}
+  .empty{text-align:center;color:var(--muted);padding:36px 16px}
+
+  @media(max-width:900px){
+    .shell{grid-template-columns:1fr}
+    .sidebar{position:fixed;z-index:70;width:250px;transform:translateX(-100%);transition:transform .2s}
+    .sidebar.open{transform:translateX(0)}
+    .kpis{grid-template-columns:1fr 1fr}
+    .menutoggle{display:inline-flex!important}
+  }
+  .menutoggle{display:none;background:none;border:0;font-size:22px;color:var(--navy)}
+  @media(max-width:560px){.kpis{grid-template-columns:1fr}.content{padding:16px}.topbar{padding:10px 14px}}
+</style>
+</head>
+<body>
+<div id="toasts"></div>
+
+<!-- LOGIN -->
+<div id="login">
+  <div class="loginbox">
+    <div class="lb-brand"><div class="lb-logo">C</div><div><b>CoDevelop</b><small>Administration Console</small></div></div>
+    <div class="card">
+      <h1>Sign in to administer the platform</h1>
+      <p class="sub">Choose your admin role — access &amp; permissions are enforced per role (RBAC). Demo console; sample data only.</p>
+      <div class="rolegrid" id="roleGrid"></div>
+      <p class="hint" style="margin-top:12px">Passcode for all roles in this demo: <b>admin2026</b></p>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="shell">
+    <aside class="sidebar" id="sidebar">
+      <div class="sb-brand"><div class="lb-logo">C</div><div><b>CoDevelop</b><small>Admin Console</small></div></div>
+      <div id="navRoot" style="flex:1"></div>
+      <div class="sb-foot">
+        <div class="sb-user"><div class="av" id="userAv">A</div><div><b id="userName">—</b><span id="userRole">—</span></div></div>
+        <button class="btn btn-ghost sm" id="logoutBtn" style="width:100%;justify-content:center;margin-top:6px;background:transparent;color:#c3d0dc;border-color:rgba(255,255,255,.15)">Sign out</button>
+      </div>
+    </aside>
+
+    <div class="main">
+      <div class="topbar">
+        <button class="menutoggle" id="menuToggle">☰</button>
+        <div class="search"><input placeholder="Search clients, opportunities, references…" id="globalSearch"></div>
+        <span class="ro-badge" id="roBadge" style="display:none">Read-only role</span>
+        <a class="btn btn-ghost sm" href="./" target="_blank">View platform ↗</a>
+      </div>
+      <div class="content" id="view"></div>
+    </div>
+  </div>
+</div>
+
+<!-- DRAWER -->
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer">
+  <div class="dw-head"><h3 id="dwTitle">—</h3><button class="btn btn-ghost sm" id="dwClose">✕</button></div>
+  <div class="dw-body" id="dwBody"></div>
+  <div class="dw-foot" id="dwFoot"></div>
+</aside>
+
+<script>
+(function(){
+  var $=function(id){return document.getElementById(id)};
+  var esc=function(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')};
+  var money=function(n){return '₦'+Number(n||0).toLocaleString('en-NG')};
+  var initials=function(s){return String(s||'?').split(/\s+/).map(function(w){return w[0]}).join('').slice(0,2).toUpperCase()};
+  function toast(m,k){var t=document.createElement('div');t.className='toast '+(k||'');t.innerHTML=m;$('toasts').appendChild(t);setTimeout(function(){t.style.transition='opacity .4s';t.style.opacity='0';setTimeout(function(){t.remove()},420)},4200)}
+
+  /* ---------------- RBAC ---------------- */
+  // access level per section: 0 none, 1 view, 2 manage
+  var ROLES={
+    super:{name:'Super Administrator',who:'Full platform control & governance',ic:'🛡️',color:'#a9782f',
+      perms:{dashboard:2,clients:2,admins:2,pipeline:2,media:2,content:2,compliance:2,transactions:2,finance:2,assurance:2,reporting:2,audit:2,config:2,incidents:2}},
+    ops:{name:'Operations Manager',who:'Pipeline, developers, clients & delivery',ic:'⚙️',color:'#2b6cb0',
+      perms:{dashboard:2,clients:2,admins:1,pipeline:2,media:2,content:2,compliance:1,transactions:2,finance:1,assurance:2,reporting:2,audit:1,config:1,incidents:2}},
+    compliance:{name:'Compliance Officer',who:'KYC/AML, risk, disclosures & audit',ic:'📋',color:'#2f7d5b',
+      perms:{dashboard:2,clients:1,admins:0,pipeline:1,media:0,content:0,compliance:2,transactions:1,finance:0,assurance:0,reporting:1,audit:2,config:0,incidents:2}},
+    finance:{name:'Finance Controller',who:'Capital calls, escrow & reconciliation',ic:'💳',color:'#7a4fb0',
+      perms:{dashboard:2,clients:1,admins:0,pipeline:0,media:0,content:0,compliance:0,transactions:1,finance:2,assurance:1,reporting:2,audit:1,config:0,incidents:1}},
+    content:{name:'Content Editor',who:'Marketplace content, media & copy',ic:'✍️',color:'#b0813b',
+      perms:{dashboard:1,clients:0,admins:0,pipeline:1,media:2,content:2,compliance:0,transactions:0,finance:0,assurance:0,reporting:1,audit:0,config:0,incidents:0}},
+  };
+  var NAV=[
+    ['Overview',[['dashboard','Dashboard','▤']]],
+    ['Clients & Access',[['clients','Client accounts','👥'],['admins','Admin users & roles','🔑']]],
+    ['Marketplace',[['pipeline','Opportunity pipeline','🏗️'],['media','Properties & media','🖼️'],['content','Content','📰']]],
+    ['Transactions',[['compliance','Compliance / KYC','📋'],['transactions','Transactions','🤝'],['finance','Finance & escrow','💳'],['assurance','Development assurance','✅']]],
+    ['Platform',[['reporting','Reporting','📈'],['audit','Audit log','🧾'],['config','Configuration','⚙️'],['incidents','Incidents & disputes','⚠️']]],
+  ];
+  var SECTITLES={dashboard:'Dashboard',clients:'Client accounts',admins:'Admin users & roles',pipeline:'Opportunity pipeline',media:'Properties & media',content:'Content management',compliance:'Compliance / KYC',transactions:'Transaction operations',finance:'Finance & escrow',assurance:'Development assurance',reporting:'Reporting',audit:'Audit log',config:'Configuration',incidents:'Incidents & disputes'};
+
+  var role=null, section='dashboard';
+  function can(sec,lvl){return role && (ROLES[role].perms[sec]||0)>=lvl}
+  function manage(sec){return can(sec,2)}
+
+  /* ---------------- SAMPLE DATA ---------------- */
+  var STAGES=['Due Diligence','Land / Commencement','Foundation','Structural Frame','Building Envelope','Mechanical & Electrical','Finishing','Completion'];
+  var MILESTONES=[['Commitment / SPV Entry',10],['Land / Commencement',15],['Foundation',15],['Structural Frame',20],['Building Envelope / Roofing',10],['Mechanical & Electrical',10],['Finishing',15],['Completion / Handover',5]];
+
+  var S={
+    clients:[
+      {id:'c1',type:'Investor',name:'Adaeze Okafor',email:'adaeze.okafor@example.com',phone:'+234 802 555 0142',status:'Active',kyc:'Verified',committed:141000000,paid:114950000,joined:'2025-11-02',country:'Nigeria',tier:'Individual',entitlements:['Marina Heights','The Waterfront'],notes:[{m:'2026-06-10 · Compliance',t:'KYC re-verification completed, valid to 2027.'}]},
+      {id:'c2',type:'Investor',name:'Tunde Bello',email:'tunde.bello@example.com',phone:'+234 803 555 0199',status:'Active',kyc:'Verified',committed:45000000,paid:11250000,joined:'2026-01-18',country:'Nigeria',tier:'Individual',entitlements:['Ivory Residences'],notes:[]},
+      {id:'c3',type:'Investor',name:'Zenith Capital Ltd',email:'ops@zenithcap.example',phone:'+234 700 936 4848',status:'Under Review',kyc:'Review Required',committed:0,paid:0,joined:'2026-08-05',country:'Nigeria',tier:'Corporate',entitlements:[],notes:[{m:'2026-08-06 · Compliance',t:'Beneficial-ownership evidence outstanding.'}]},
+      {id:'c4',type:'Investor',name:'Ngozi Eze',email:'ngozi.eze@example.com',phone:'+234 806 555 0110',status:'Active',kyc:'Verified',committed:76000000,paid:53200000,joined:'2025-09-21',country:'Nigeria',tier:'Individual',entitlements:['Marina Heights'],notes:[]},
+      {id:'c5',type:'Investor',name:'Chidi Nwosu',email:'chidi.nwosu@example.com',phone:'+234 805 555 0177',status:'Suspended',kyc:'Failed Verification',committed:0,paid:0,joined:'2026-07-30',country:'Nigeria',tier:'Individual',entitlements:[],notes:[{m:'2026-08-01 · Compliance',t:'Sanctions screening flag — account suspended pending review.'}]},
+      {id:'d1',type:'Developer',name:'Meridian Developments',email:'partners@meridian.example',phone:'+234 1 448 2200',status:'Active',kyc:'Verified',committed:0,paid:0,joined:'2024-05-10',country:'Nigeria',tier:'Verified developer',entitlements:['Ivory Residences','The Waterfront'],notes:[{m:'2026-03-02 · Ops',t:'Annual re-verification passed. 11 delivered schemes.'}]},
+      {id:'d2',type:'Developer',name:'Atlas Urban',email:'hello@atlasurban.example',phone:'+234 1 271 9000',status:'Active',kyc:'Verified',committed:0,paid:0,joined:'2024-09-14',country:'Nigeria',tier:'Verified developer',entitlements:['Marina Heights','Palm Grove Offices'],notes:[]},
+      {id:'d3',type:'Developer',name:'Heritage Build',email:'info@heritagebuild.example',phone:'+234 1 555 3010',status:'Under Review',kyc:'In Progress',committed:0,paid:0,joined:'2026-07-12',country:'Nigeria',tier:'Developer applicant',entitlements:['GRA Court'],notes:[{m:'2026-08-08 · Ops',t:'Verification pack under review ahead of GRA Court publication.'}]},
+      {id:'p1',type:'Partner',name:'Okoro & Partners (Legal)',email:'clerk@okoropartners.example',phone:'+234 1 460 7788',status:'Active',kyc:'Verified',committed:0,paid:0,joined:'2025-02-01',country:'Nigeria',tier:'Legal partner',entitlements:['Assigned matters only'],notes:[]},
+      {id:'p2',type:'Partner',name:'Lagos QS Assurance',email:'certify@lagosqs.example',phone:'+234 1 903 2211',status:'Active',kyc:'Verified',committed:0,paid:0,joined:'2025-04-19',country:'Nigeria',tier:'QS / Assurance',entitlements:['Assigned milestones only'],notes:[]},
+      {id:'p3',type:'Partner',name:'Sterling Trust (Escrow)',email:'escrow@sterlingtrust.example',phone:'+234 1 448 9000',status:'Active',kyc:'Verified',committed:0,paid:0,joined:'2025-01-15',country:'Nigeria',tier:'Bank / Escrow',entitlements:['Escrow references only'],notes:[]},
+    ],
+    admins:[
+      {id:'a1',name:'Bisi Adeyemi',email:'bisi@codevelop.example',role:'super',status:'Active',mfa:true,last:'2026-08-18 09:14'},
+      {id:'a2',name:'Ken Umeh',email:'ken@codevelop.example',role:'ops',status:'Active',mfa:true,last:'2026-08-18 08:02'},
+      {id:'a3',name:'Fatima Sani',email:'fatima@codevelop.example',role:'compliance',status:'Active',mfa:true,last:'2026-08-17 17:40'},
+      {id:'a4',name:'Deji Coker',email:'deji@codevelop.example',role:'finance',status:'Active',mfa:false,last:'2026-08-18 07:55'},
+      {id:'a5',name:'Amara Obi',email:'amara@codevelop.example',role:'content',status:'Invited',mfa:false,last:'—'},
+    ],
+    opps:[
+      {id:'ivory-ikoyi',name:'Ivory Residences',loc:'Ikoyi',dev:'Meridian Developments',stage:'Foundation',stageIdx:2,status:'Published',from:45000000,units:24,avail:9},
+      {id:'marina-vi',name:'Marina Heights',loc:'Victoria Island',dev:'Atlas Urban',stage:'Structural Frame',stageIdx:3,status:'Published',from:38000000,units:60,avail:22},
+      {id:'lekki-palms',name:'Lekki Palms Estate',loc:'Lekki',dev:'Coastline Projects',stage:'Land / Commencement',stageIdx:1,status:'Published',from:22000000,units:120,avail:64},
+      {id:'gra-court',name:'GRA Court',loc:'Ikeja GRA',dev:'Heritage Build',stage:'Due Diligence',stageIdx:0,status:'Legal Review',from:30000000,units:18,avail:18},
+      {id:'waterfront-ikoyi',name:'The Waterfront',loc:'Ikoyi',dev:'Meridian Developments',stage:'Finishing',stageIdx:6,status:'Published',from:65000000,units:30,avail:4},
+      {id:'palm-offices',name:'Palm Grove Offices',loc:'Lekki',dev:'Atlas Urban',stage:'Building Envelope',stageIdx:4,status:'Development',from:40000000,units:40,avail:15},
+      {id:'harbour-view',name:'Harbour View',loc:'Victoria Island',dev:'Coastline Projects',stage:'Due Diligence',stageIdx:0,status:'Draft',from:52000000,units:20,avail:20},
+    ],
+    kyc:[
+      {id:'k1',name:'Zenith Capital Ltd',type:'Corporate',status:'Review Required',flag:'Beneficial ownership pending'},
+      {id:'k2',name:'Chidi Nwosu',type:'Individual',status:'Failed Verification',flag:'Sanctions screening hit'},
+      {id:'k3',name:'Ibrahim Musa',type:'Individual',status:'In Progress',flag:'Awaiting selfie match'},
+    ],
+    finance:[
+      {ref:'CC-2026-0442',investor:'Adaeze Okafor',opp:'Marina Heights',ms:'Building Envelope',amt:7600000,status:'Awaiting Payment'},
+      {ref:'CC-2026-0439',investor:'Tunde Bello',opp:'Ivory Residences',ms:'Foundation',amt:6750000,status:'Received'},
+      {ref:'CC-2026-0431',investor:'Ngozi Eze',opp:'Marina Heights',ms:'Structural Frame',amt:15200000,status:'Reconciled'},
+      {ref:'CC-2026-0428',investor:'K. Adeyemi',opp:'Palm Grove Offices',ms:'Envelope',amt:4000000,status:'Held in Escrow'},
+      {ref:'CC-2026-0421',investor:'Zenith Capital',opp:'The Waterfront',ms:'Finishing',amt:9750000,status:'Release Approved'},
+    ],
+    assurance:[
+      {opp:'Ivory Residences',ms:'Foundation',dev:'Meridian Developments',status:'Evidence Submitted'},
+      {opp:'Palm Grove Offices',ms:'Building Envelope',dev:'Atlas Urban',status:'Under Review'},
+      {opp:'Marina Heights',ms:'Structural Frame',dev:'Atlas Urban',status:'Certified'},
+    ],
+    incidents:[
+      {id:'INC-104',subj:'Investor query — Marina Heights capital call reference',pri:'Attention',status:'Action Required',owner:'Operations'},
+      {id:'INC-103',subj:'Reconciliation exception — unmatched transfer ₦4.0M',pri:'Attention',status:'Under Review',owner:'Finance'},
+      {id:'DSP-012',subj:'Dispute — GRA Court publication timing',pri:'Exception',status:'Under Review',owner:'Compliance'},
+    ],
+    content:[
+      {id:'home-hero',title:'Homepage hero',status:'Published',note:'“Co-develop premium property — before the developer’s margin.”'},
+      {id:'feat',title:'Featured opportunities',status:'Published',note:'Ivory Residences, Marina Heights, Lekki Palms'},
+      {id:'trust',title:'Trust & assurance section',status:'Published',note:'Verified developers · escrow · QS assurance'},
+      {id:'case-1',title:'Case study — Meridian Court',status:'Draft',note:'Awaiting completed-value evidence & disclosure approval'},
+    ],
+    flags:[
+      {k:'marketplace.map_view',label:'Opportunity map view',on:false},
+      {k:'investor.shortlist',label:'Investor shortlist & saved searches',on:true},
+      {k:'finance.bank_api',label:'Bank/escrow API reconciliation',on:false},
+      {k:'kyc.provider_live',label:'Live KYC/AML provider',on:true},
+      {k:'jurisdiction.uk',label:'United Kingdom jurisdiction',on:false},
+      {k:'jurisdiction.us',label:'United States jurisdiction',on:false},
+    ],
+    jurisdictions:[
+      {m:'Nigeria',cur:'NGN',status:'Active',kyc:'Smile ID (demo)',entity:'SPV / JV'},
+      {m:'United Kingdom',cur:'GBP',status:'Planned',kyc:'—',entity:'SPV / LP'},
+      {m:'United States',cur:'USD',status:'Planned',kyc:'—',entity:'LLC / SPV'},
+    ],
+    templates:[
+      {t:'NDA — Nigeria',v:'v3',status:'Active'},
+      {t:'SPV Co-Development Agreement — Nigeria',v:'v2',status:'Active'},
+      {t:'Subscription / Participation Agreement',v:'v4',status:'Active'},
+      {t:'Risk & Disclosure Pack',v:'v3',status:'Active'},
+    ],
+    audit:[
+      {t:'2026-08-18 09:14',who:'Bisi Adeyemi',act:'Signed in',target:'Super Administrator'},
+      {t:'2026-08-18 08:31',who:'Fatima Sani',act:'KYC approved',target:'Ibrahim Musa'},
+      {t:'2026-08-18 08:02',who:'Ken Umeh',act:'Opportunity published',target:'Marina Heights'},
+      {t:'2026-08-17 17:41',who:'Deji Coker',act:'Escrow release authorised',target:'CC-2026-0421 · The Waterfront'},
+    ],
+  };
+  function audit(act,target){var d=new Date();var t=('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);S.audit.unshift({t:'2026-08-18 '+t,who:ADMIN.name,act:act,target:target||''})}
+
+  var STMAP={Active:'good',Verified:'good',Published:'good',Reconciled:'good',Received:'good',Certified:'good','Release Approved':'good','Released':'good',Approved:'good',Invited:'prog','In Progress':'prog','Under Review':'prog','Development':'prog','Held in Escrow':'prog','Awaiting Payment':'attn','Evidence Submitted':'prog','Review Required':'attn','Action Required':'attn','Legal Review':'neu',Draft:'neu',Planned:'neu','Suspended':'bad','Failed Verification':'bad','Exception':'bad','Attention':'attn'};
+  function pill(s){return '<span class="pill '+(STMAP[s]||'neu')+'">'+esc(s)+'</span>'}
+
+  /* ---------------- MEDIA STORE (localStorage) ---------------- */
+  var MEDIA_KEY='codev-admin-media';
+  var media={}; try{media=JSON.parse(localStorage.getItem(MEDIA_KEY))||{}}catch(e){media={}}
+  function mediaFor(id){ if(!media[id])media[id]={cover:'',gallery:[],stages:{}}; return media[id]; }
+  function saveMedia(){ try{localStorage.setItem(MEDIA_KEY,JSON.stringify(media))}catch(e){toast('Storage full — remove some images or they won’t persist.','err')} }
+  function uid(){return 'm'+Math.random().toString(36).slice(2,9)}
+  // read + downscale a File to a jpeg dataURL
+  function readImage(file,cb){
+    if(!/^image\//.test(file.type)){toast('Skipped “'+esc(file.name)+'” — not an image.','err');return}
+    var r=new FileReader();
+    r.onload=function(e){
+      var img=new Image();
+      img.onload=function(){
+        var max=1280,w=img.width,h=img.height;
+        if(w>max||h>max){var sc=Math.min(max/w,max/h);w=Math.round(w*sc);h=Math.round(h*sc)}
+        var cv=document.createElement('canvas');cv.width=w;cv.height=h;
+        cv.getContext('2d').drawImage(img,0,0,w,h);
+        cb(cv.toDataURL('image/jpeg',0.72));
+      };
+      img.onerror=function(){toast('Could not read “'+esc(file.name)+'”.','err')};
+      img.src=e.target.result;
+    };
+    r.readAsDataURL(file);
+  }
+  function ingest(files,onEach,done){
+    var arr=[].slice.call(files),n=arr.length,left=n;
+    if(!n)return;
+    arr.forEach(function(f){ readImage(f,function(src){ onEach(src,f); left--; if(left===0){saveMedia(); if(done)done(n);} }); });
+  }
+
+  /* ---------------- LOGIN ---------------- */
+  var ADMIN={name:'',role:''};
+  function renderRoles(){
+    $('roleGrid').innerHTML=Object.keys(ROLES).map(function(k){var r=ROLES[k];
+      return '<div class="roleopt" data-role="'+k+'"><div class="ic" style="background:'+r.color+'22;color:'+r.color+'">'+r.ic+'</div>'+
+        '<div><b>'+r.name+'</b><br><span>'+r.who+'</span></div></div>';
+    }).join('');
+    document.querySelectorAll('.roleopt').forEach(function(el){el.onclick=function(){
+      var pin=prompt('Enter admin passcode for '+ROLES[el.dataset.role].name+':','');
+      if(pin===null)return;
+      if(pin!=='admin2026'){toast('Incorrect passcode.','err');return}
+      login(el.dataset.role);
+    }});
+  }
+  var NAMES={super:'Bisi Adeyemi',ops:'Ken Umeh',compliance:'Fatima Sani',finance:'Deji Coker',content:'Amara Obi'};
+  function login(r){
+    role=r; ADMIN={name:NAMES[r],role:r};
+    sessionStorage.setItem('codev-admin',r);
+    $('login').style.display='none'; $('app').style.display='block';
+    $('userName').textContent=ADMIN.name; $('userRole').textContent=ROLES[r].name;
+    $('userAv').textContent=initials(ADMIN.name);
+    audit('Signed in',ROLES[r].name);
+    buildNav(); go(firstSection());
+  }
+  $('logoutBtn').onclick=function(){sessionStorage.removeItem('codev-admin');location.reload()};
+  function firstSection(){var f='dashboard';for(var i=0;i<NAV.length;i++){for(var j=0;j<NAV[i][1].length;j++){if(can(NAV[i][1][j][0],1))return NAV[i][1][j][0]}}return f}
+
+  /* ---------------- NAV ---------------- */
+  function buildNav(){
+    var counts={pipeline:S.opps.filter(function(o){return o.status!=='Published'&&o.status!=='Development'}).length,
+      compliance:S.kyc.length, finance:S.finance.filter(function(f){return f.status==='Awaiting Payment'||f.status==='Release Approved'}).length,
+      incidents:S.incidents.length, assurance:S.assurance.filter(function(a){return a.status!=='Certified'}).length};
+    $('navRoot').innerHTML=NAV.map(function(grp){
+      var items=grp[1].filter(function(it){return can(it[0],1)});
+      if(!items.length)return '';
+      return '<div class="navsec"><div class="lbl">'+grp[0]+'</div>'+items.map(function(it){
+        var bdg=counts[it[0]]?('<span class="bdg">'+counts[it[0]]+'</span>'):'';
+        return '<div class="navitem'+(it[0]===section?' on':'')+'" data-sec="'+it[0]+'"><span class="ic">'+it[2]+'</span>'+it[1]+bdg+'</div>';
+      }).join('')+'</div>';
+    }).join('');
+    document.querySelectorAll('.navitem').forEach(function(el){el.onclick=function(){go(el.dataset.sec);$('sidebar').classList.remove('open')}});
+  }
+  function go(sec){ if(!can(sec,1)){toast('Your role has no access to that area.','err');return} section=sec; buildNav();
+    $('roBadge').style.display = can(sec,2)?'none':'inline-block';
+    (VIEWS[sec]||VIEWS.dashboard)(); window.scrollTo(0,0);
+  }
+  $('menuToggle').onclick=function(){$('sidebar').classList.toggle('open')};
+
+  function head(title,sub){return '<div class="pagehead"><div class="breadcrumb">Admin / '+esc(SECTITLES[section]||'')+'</div><div class="row between"><div><h1>'+esc(title)+'</h1>'+(sub?'<p>'+esc(sub)+'</p>':'')+'</div><div id="headActions" class="row"></div></div></div>'}
+
+  /* ---------------- DRAWER ---------------- */
+  function openDrawer(title,body,foot){$('dwTitle').innerHTML=title;$('dwBody').innerHTML=body;$('dwFoot').innerHTML=foot||'';$('drawer').classList.add('open');$('scrim').classList.add('open')}
+  function closeDrawer(){$('drawer').classList.remove('open');$('scrim').classList.remove('open')}
+  $('dwClose').onclick=closeDrawer; $('scrim').onclick=closeDrawer;
+
+  /* ================= VIEWS ================= */
+  var VIEWS={};
+
+  VIEWS.dashboard=function(){
+    var pendKyc=S.kyc.length, pendOpp=S.opps.filter(function(o){return o.status==='Legal Review'||o.status==='Draft'}).length;
+    var inflight=S.finance.reduce(function(a,f){return a+f.amt},0);
+    var activeClients=S.clients.filter(function(c){return c.status==='Active'}).length;
+    $('view').innerHTML=head('Operations dashboard','Signed in as '+ADMIN.name+' · '+ROLES[role].name)+
+      '<div class="kpis">'+
+        kpi(pendOpp,'Opportunities pending','br','approval / DD')+
+        kpi(pendKyc,'KYC exceptions','rd','compliance queue')+
+        kpi(money(inflight),'Capital calls in flight','','escrow-governed')+
+        kpi(activeClients,'Active client accounts','gr','investors, devs & partners')+
+        kpi(S.incidents.length,'Open incidents','','& disputes')+
+      '</div>'+
+      '<div class="grid" style="grid-template-columns:1.4fr 1fr;margin-top:14px">'+
+        '<div class="card pad"><div class="row between" style="margin-bottom:10px"><b class="disp" style="font-size:15px">Approval &amp; action queue</b></div>'+
+          queueRows()+'</div>'+
+        '<div class="card pad"><b class="disp" style="font-size:15px">Recent audit events</b>'+
+          '<div style="margin-top:10px">'+S.audit.slice(0,7).map(function(a){return '<div class="kv"><span>'+esc(a.act)+(a.target?' · <span style="color:var(--muted)">'+esc(a.target)+'</span>':'')+'</span><b class="num" style="font-weight:500;color:var(--faint);font-size:11px">'+esc(a.t.slice(11))+'</b></div>'}).join('')+'</div></div>'+
+      '</div>';
+    styleGrid();
+  };
+  function kpi(n,l,c,d){return '<div class="kpi"><div class="n '+(c||'')+' num">'+n+'</div><div class="l">'+l+'</div>'+(d?'<div class="d">'+d+'</div>':'')+'</div>'}
+  function queueRows(){
+    var rows=[];
+    S.opps.filter(function(o){return o.status==='Legal Review'||o.status==='Draft'}).forEach(function(o){rows.push(['🏗️',o.name+' — '+o.status,'Pipeline',can('pipeline',2)?'#pipeline':''])});
+    S.kyc.forEach(function(k){rows.push(['📋',k.name+' — '+k.flag,'Compliance',can('compliance',2)?'#compliance':''])});
+    S.finance.filter(function(f){return f.status==='Release Approved'}).forEach(function(f){rows.push(['💳',f.ref+' — release ready ('+money(f.amt)+')','Finance',can('finance',2)?'#finance':''])});
+    if(!rows.length)return '<div class="empty">Nothing awaiting action. 🎉</div>';
+    return rows.map(function(r){return '<div class="row between" style="padding:9px 0;border-bottom:1px solid var(--line-2)"><div class="row" style="gap:9px"><span>'+r[0]+'</span><span>'+esc(r[1])+'</span></div>'+
+      '<div class="row" style="gap:8px"><span class="pill neu">'+r[2]+'</span>'+(r[3]?'<button class="btn btn-ghost xs" data-goq="'+r[3].slice(1)+'">Open</button>':'')+'</div></div>'}).join('');
+  }
+  function styleGrid(){var g=document.querySelector('.grid');if(g&&window.innerWidth<900)g.style.gridTemplateColumns='1fr';
+    document.querySelectorAll('[data-goq]').forEach(function(b){b.onclick=function(){go(b.dataset.goq)}});
+    document.querySelectorAll('[data-goto]').forEach(function(b){b.onclick=function(){go(b.dataset.goto)}}); }
+
+  /* -------- CLIENTS -------- */
+  var clientTab='Investor';
+  VIEWS.clients=function(){
+    $('view').innerHTML=head('Client accounts','Administer investor, developer and professional-partner accounts — status, KYC, entitlements and support.')+
+      '<div class="tabs" id="clientTabs">'+['Investor','Developer','Partner'].map(function(t){var n=S.clients.filter(function(c){return c.type===t}).length;return '<button class="tab'+(t===clientTab?' on':'')+'" data-ct="'+t+'">'+t+'s <span class="pill neu" style="margin-left:4px">'+n+'</span></button>'}).join('')+'</div>'+
+      '<div class="card"><div class="tblwrap"><table><thead><tr><th>Account</th><th>Status</th><th>KYC</th><th class="num">Committed</th><th>Joined</th><th></th></tr></thead><tbody id="clientRows"></tbody></table></div></div>';
+    document.querySelectorAll('#clientTabs .tab').forEach(function(b){b.onclick=function(){clientTab=b.dataset.ct;VIEWS.clients()}});
+    renderClientRows();
+  };
+  function renderClientRows(){
+    var list=S.clients.filter(function(c){return c.type===clientTab});
+    $('clientRows').innerHTML=list.map(function(c){
+      return '<tr><td><div class="row" style="gap:9px"><span class="av-sm">'+initials(c.name)+'</span><div><b>'+esc(c.name)+'</b><br><span style="color:var(--muted);font-size:11.5px">'+esc(c.email)+' · '+esc(c.tier)+'</span></div></div></td>'+
+        '<td>'+pill(c.status)+'</td><td>'+pill(c.kyc)+'</td>'+
+        '<td class="num">'+(c.type==='Investor'?money(c.committed):'—')+'</td>'+
+        '<td class="num" style="color:var(--muted)">'+esc(c.joined)+'</td>'+
+        '<td style="text-align:right"><button class="btn btn-ghost sm" data-mc="'+c.id+'">'+(manage('clients')?'Manage':'View')+'</button></td></tr>';
+    }).join('') || '<tr><td colspan="6"><div class="empty">No '+clientTab.toLowerCase()+' accounts.</div></td></tr>';
+    document.querySelectorAll('[data-mc]').forEach(function(b){b.onclick=function(){manageClient(b.dataset.mc)}});
+  }
+  function manageClient(id){
+    var c=S.clients.filter(function(x){return x.id===id})[0]; if(!c)return;
+    var ed=manage('clients');
+    var statusOpts=['Active','Under Review','Suspended','Closed'].map(function(s){return '<option'+(s===c.status?' selected':'')+'>'+s+'</option>'}).join('');
+    var kycOpts=['Verified','In Progress','Review Required','Failed Verification','Not Started'].map(function(s){return '<option'+(s===c.kyc?' selected':'')+'>'+s+'</option>'}).join('');
+    var body='<div class="row" style="gap:12px;margin-bottom:8px"><span class="av-sm" style="width:44px;height:44px;font-size:15px">'+initials(c.name)+'</span>'+
+        '<div><div class="disp" style="font-size:17px;color:var(--navy)">'+esc(c.name)+'</div><div style="color:var(--muted);font-size:12px">'+esc(c.type)+' · '+esc(c.tier)+' · joined '+esc(c.joined)+'</div></div></div>'+
+      '<div class="row" style="gap:6px;margin-bottom:6px">'+pill(c.status)+pill(c.kyc)+'</div>'+
+      '<div class="sec-title">Account details</div>'+
+      '<div class="field"><label>Full name / entity</label><input id="cfName" value="'+esc(c.name)+'" '+(ed?'':'disabled')+'></div>'+
+      '<div class="row" style="gap:10px"><div class="field" style="flex:1;min-width:180px"><label>Email</label><input id="cfEmail" value="'+esc(c.email)+'" '+(ed?'':'disabled')+'></div>'+
+      '<div class="field" style="flex:1;min-width:150px"><label>Phone</label><input id="cfPhone" value="'+esc(c.phone)+'" '+(ed?'':'disabled')+'></div></div>'+
+      '<div class="row" style="gap:10px"><div class="field" style="flex:1"><label>Account status</label><select id="cfStatus" '+(ed?'':'disabled')+'>'+statusOpts+'</select></div>'+
+      '<div class="field" style="flex:1"><label>KYC / AML status</label><select id="cfKyc" '+(ed?'':'disabled')+'>'+kycOpts+'</select></div></div>'+
+      (c.type==='Investor'?'<div class="row" style="gap:10px"><div class="field" style="flex:1"><label>Committed (₦)</label><input id="cfComm" class="num" value="'+c.committed+'" '+(ed?'':'disabled')+'></div><div class="field" style="flex:1"><label>Paid to date (₦)</label><input id="cfPaid" class="num" value="'+c.paid+'" '+(ed?'':'disabled')+'></div></div>':'')+
+      '<div class="sec-title">Deal-room entitlements</div>'+
+      '<div class="row" style="gap:6px">'+(c.entitlements.length?c.entitlements.map(function(e){return '<span class="pill neu">'+esc(e)+'</span>'}).join(''):'<span class="hint">None granted.</span>')+'</div>'+
+      (ed?'<div class="row" style="margin-top:8px"><select id="cfEntSel" style="flex:1">'+['— grant deal-room access —'].concat(S.opps.map(function(o){return o.name})).map(function(n){return '<option>'+esc(n)+'</option>'}).join('')+'</select><button class="btn btn-ghost sm" id="cfEntAdd">Grant</button></div>':'')+
+      '<div class="sec-title">Access &amp; security</div>'+
+      '<div class="medlist">'+
+        secRow('Reset password','Send a password-reset link',ed,'reset')+
+        secRow('Re-enrol MFA','Require MFA re-enrolment on next sign-in',ed,'mfa')+
+        secRow('Support access (logged)','Open a logged, time-boxed support session',ed,'impersonate')+
+      '</div>'+
+      '<div class="sec-title">Compliance notes &amp; activity</div>'+
+      '<div id="cfNotes">'+(c.notes.length?c.notes.map(function(n){return '<div class="note-item"><div>'+esc(n.t)+'</div><div class="m">'+esc(n.m)+'</div></div>'}).join(''):'<span class="hint">No notes yet.</span>')+'</div>'+
+      (ed?'<div class="row" style="margin-top:8px"><input id="cfNote" placeholder="Add an internal note…" style="flex:1"><button class="btn btn-ghost sm" id="cfNoteAdd">Add</button></div>':'');
+    var foot = ed
+      ? '<button class="btn btn-red" id="cfSuspend">'+(c.status==='Suspended'?'Reactivate':'Suspend')+'</button><span style="flex:1"></span><button class="btn btn-ghost" id="cfCancel">Close</button><button class="btn btn-bronze" id="cfSave">Save changes</button>'
+      : '<span style="flex:1"></span><button class="btn btn-ghost" id="cfCancel">Close</button>';
+    openDrawer('Client account',body,foot);
+    $('cfCancel').onclick=closeDrawer;
+    if(ed){
+      var entAdd=$('cfEntAdd'); if(entAdd)entAdd.onclick=function(){var v=$('cfEntSel').value;if(v.indexOf('—')<0&&c.entitlements.indexOf(v)<0){c.entitlements.push(v);audit('Granted deal-room access',c.name+' → '+v);manageClient(id);toast('Access granted: '+esc(v),'ok')}};
+      $('cfNoteAdd').onclick=function(){var v=$('cfNote').value.trim();if(!v)return;c.notes.unshift({m:'2026-08-18 · '+ROLES[role].name,t:v});audit('Added client note',c.name);manageClient(id)};
+      document.querySelectorAll('[data-sec-act]').forEach(function(b){b.onclick=function(){var a=b.dataset.secAct;
+        if(a==='reset'){audit('Sent password reset',c.name);toast('Password-reset link sent to '+esc(c.email),'ok')}
+        if(a==='mfa'){audit('Required MFA re-enrolment',c.name);toast('MFA re-enrolment required at next sign-in','ok')}
+        if(a==='impersonate'){audit('Opened support session (logged)',c.name);toast('Logged support session opened (5-min, read-only)','ok')}
+      }});
+      $('cfSuspend').onclick=function(){c.status=(c.status==='Suspended')?'Active':'Suspended';audit(c.status==='Suspended'?'Suspended account':'Reactivated account',c.name);toast('Account '+(c.status==='Suspended'?'suspended':'reactivated'),'ok');manageClient(id);renderClientRows()};
+      $('cfSave').onclick=function(){
+        c.name=$('cfName').value.trim();c.email=$('cfEmail').value.trim();c.phone=$('cfPhone').value.trim();
+        c.status=$('cfStatus').value;c.kyc=$('cfKyc').value;
+        if($('cfComm')){c.committed=Number($('cfComm').value)||0;c.paid=Number($('cfPaid').value)||0}
+        audit('Updated client account',c.name);toast('Account updated','ok');renderClientRows();closeDrawer();
+      };
+    }
+  }
+  function secRow(t,s,ed,act){return '<div class="medrow" '+(ed?'data-sec-act="'+act+'"':'style="cursor:default;opacity:.6"')+'><div><b>'+t+'</b><br><span>'+s+'</span></div><span style="margin-left:auto">'+(ed?'›':'🔒')+'</span></div>'}
+
+  /* -------- ADMIN USERS & ROLES -------- */
+  var adminTab='users';
+  VIEWS.admins=function(){
+    var ed=manage('admins');
+    $('view').innerHTML=head('Admin users & roles','Manage who can administer the platform and what each role can do (RBAC).')+
+      '<div class="tabs"><button class="tab'+(adminTab==='users'?' on':'')+'" data-at="users">Admin users</button><button class="tab'+(adminTab==='matrix'?' on':'')+'" data-at="matrix">Roles &amp; permissions</button></div>'+
+      '<div id="adminBody"></div>';
+    document.querySelectorAll('[data-at]').forEach(function(b){b.onclick=function(){adminTab=b.dataset.at;VIEWS.admins()}});
+    if(adminTab==='users'){
+      $('adminBody').innerHTML=(ed?'<div class="row between" style="margin-bottom:10px"><span class="hint">'+S.admins.length+' staff accounts</span><button class="btn btn-bronze sm" id="addAdmin">+ Add admin user</button></div>':'')+
+        '<div class="card"><div class="tblwrap"><table><thead><tr><th>User</th><th>Role</th><th>MFA</th><th>Status</th><th>Last active</th><th></th></tr></thead><tbody>'+
+        S.admins.map(function(u){return '<tr><td><div class="row" style="gap:9px"><span class="av-sm">'+initials(u.name)+'</span><div><b>'+esc(u.name)+'</b><br><span style="color:var(--muted);font-size:11.5px">'+esc(u.email)+'</span></div></div></td>'+
+          '<td><span class="pill neu">'+ROLES[u.role].ic+' '+esc(ROLES[u.role].name)+'</span></td>'+
+          '<td>'+(u.mfa?'<span class="pill good">On</span>':'<span class="pill bad">Off</span>')+'</td>'+
+          '<td>'+pill(u.status)+'</td><td class="num" style="color:var(--muted)">'+esc(u.last)+'</td>'+
+          '<td style="text-align:right"><button class="btn btn-ghost sm" data-eu="'+u.id+'">'+(ed?'Edit':'View')+'</button></td></tr>'}).join('')+
+        '</tbody></table></div></div>';
+      var aa=$('addAdmin'); if(aa)aa.onclick=function(){editAdmin(null)};
+      document.querySelectorAll('[data-eu]').forEach(function(b){b.onclick=function(){editAdmin(b.dataset.eu)}});
+    } else {
+      var secs=Object.keys(SECTITLES);
+      $('adminBody').innerHTML='<div class="card pad"><p class="hint" style="margin-bottom:10px">Access levels per role: <b>✓✓</b> manage · <b>✓</b> view only · <b>–</b> no access. Least-privilege by design.</p>'+
+        '<div class="tblwrap"><table class="matrix"><thead><tr><th>Capability</th>'+Object.keys(ROLES).map(function(k){return '<th>'+ROLES[k].ic+'<br>'+esc(ROLES[k].name.split(' ')[0])+'</th>'}).join('')+'</tr></thead><tbody>'+
+        secs.map(function(sec){return '<tr><td class="k"><b>'+esc(SECTITLES[sec])+'</b></td>'+Object.keys(ROLES).map(function(k){var l=ROLES[k].perms[sec]||0;return '<td>'+(l===2?'<span class="dot-yes">✓✓</span>':l===1?'<span class="dot-yes" style="opacity:.7">✓</span>':'<span class="dot-no">–</span>')+'</td>'}).join('')+'</tr>'}).join('')+
+        '</tbody></table></div></div>';
+    }
+  };
+  function editAdmin(id){
+    var u=id?S.admins.filter(function(x){return x.id===id})[0]:{name:'',email:'',role:'ops',status:'Invited',mfa:false,last:'—'};
+    var ed=manage('admins');
+    var roleOpts=Object.keys(ROLES).map(function(k){return '<option value="'+k+'"'+(k===u.role?' selected':'')+'>'+ROLES[k].name+'</option>'}).join('');
+    var body='<div class="field"><label>Name</label><input id="auName" value="'+esc(u.name)+'" '+(ed?'':'disabled')+'></div>'+
+      '<div class="field"><label>Email</label><input id="auEmail" value="'+esc(u.email)+'" '+(ed?'':'disabled')+'></div>'+
+      '<div class="field"><label>Role</label><select id="auRole" '+(ed?'':'disabled')+'>'+roleOpts+'</select></div>'+
+      '<div id="auPerm" class="card pad" style="background:#fff"></div>'+
+      '<div class="row between" style="margin-top:12px"><div><b style="font-size:13px">Multi-factor authentication</b><br><span class="hint">Required for privileged actions</span></div><button class="toggle'+(u.mfa?' on':'')+'" id="auMfa" '+(ed?'':'disabled')+'></button></div>';
+    var foot=ed?(id?'<button class="btn btn-red" id="auSuspend">'+(u.status==='Suspended'?'Reactivate':'Suspend')+'</button>':'')+'<span style="flex:1"></span><button class="btn btn-ghost" id="auCancel">Cancel</button><button class="btn btn-bronze" id="auSave">'+(id?'Save':'Create & invite')+'</button>':'<span style="flex:1"></span><button class="btn btn-ghost" id="auCancel">Close</button>';
+    openDrawer(id?'Edit admin user':'Add admin user',body,foot);
+    function paintPerm(){var k=$('auRole').value;$('auPerm').innerHTML='<div class="sec-title" style="margin-top:0">Grants — '+esc(ROLES[k].name)+'</div>'+Object.keys(SECTITLES).map(function(sec){var l=ROLES[k].perms[sec]||0;return '<div class="kv"><span>'+esc(SECTITLES[sec])+'</span><b>'+(l===2?'<span class="pill good" style="padding:1px 8px">Manage</span>':l===1?'<span class="pill prog" style="padding:1px 8px">View</span>':'<span class="pill neu" style="padding:1px 8px">—</span>')+'</b></div>'}).join('')}
+    paintPerm();
+    $('auCancel').onclick=closeDrawer;
+    if(ed){
+      $('auRole').onchange=paintPerm;
+      $('auMfa').onclick=function(){u.mfa=!u.mfa;$('auMfa').classList.toggle('on',u.mfa)};
+      var sus=$('auSuspend'); if(sus)sus.onclick=function(){u.status=u.status==='Suspended'?'Active':'Suspended';audit(u.status==='Suspended'?'Suspended admin':'Reactivated admin',u.name);VIEWS.admins();closeDrawer()};
+      $('auSave').onclick=function(){
+        u.name=$('auName').value.trim();u.email=$('auEmail').value.trim();u.role=$('auRole').value;
+        if(!u.name||!u.email){toast('Name and email required.','err');return}
+        if(!id){u.id='a'+Date.now();S.admins.push(u);audit('Created admin user',u.name+' ('+ROLES[u.role].name+')');toast('Admin user created & invited','ok')}
+        else{audit('Updated admin user',u.name);toast('Admin user updated','ok')}
+        VIEWS.admins();closeDrawer();
+      };
+    }
+  }
+
+  /* -------- PIPELINE -------- */
+  VIEWS.pipeline=function(){
+    var ed=manage('pipeline');
+    $('view').innerHTML=head('Opportunity pipeline','Developments by stage — due diligence, approval committee and publication. '+ (ed?'':'(view only)'))+
+      '<div class="card"><div class="tblwrap"><table><thead><tr><th>Opportunity</th><th>Developer</th><th>Stage</th><th>Status</th><th class="num">From</th><th></th></tr></thead><tbody>'+
+      S.opps.map(function(o){var acts='';
+        if(ed){ if(o.status==='Draft')acts='<button class="btn btn-ghost xs" data-op-dd="'+o.id+'">Send to DD</button>';
+          else if(o.status==='Legal Review')acts='<button class="btn btn-green xs" data-op-pub="'+o.id+'">Approve &amp; publish</button> <button class="btn btn-red xs" data-op-rej="'+o.id+'">Reject</button>';
+          else acts='<button class="btn btn-ghost xs" data-op-media="'+o.id+'">Manage media</button>'; }
+        return '<tr><td><b>'+esc(o.name)+'</b><br><span style="color:var(--muted);font-size:11.5px">'+esc(o.loc)+' · '+o.avail+'/'+o.units+' available</span></td>'+
+          '<td>'+esc(o.dev)+'</td><td><span class="pill neu">'+esc(o.stage)+'</span></td><td>'+pill(o.status)+'</td>'+
+          '<td class="num">'+money(o.from)+'</td><td style="text-align:right;white-space:nowrap">'+acts+'</td></tr>'}).join('')+
+      '</tbody></table></div></div>';
+    document.querySelectorAll('[data-op-dd]').forEach(function(b){b.onclick=function(){var o=opp(b.dataset.opDd);o.status='Legal Review';audit('Moved to due diligence',o.name);toast(o.name+' → Due diligence / Legal review','ok');VIEWS.pipeline();buildNav()}});
+    document.querySelectorAll('[data-op-pub]').forEach(function(b){b.onclick=function(){var o=opp(b.dataset.opPub);o.status='Published';audit('Opportunity approved & published',o.name);toast(o.name+' published to marketplace','ok');VIEWS.pipeline();buildNav()}});
+    document.querySelectorAll('[data-op-rej]').forEach(function(b){b.onclick=function(){var o=opp(b.dataset.opRej);o.status='Draft';audit('Opportunity returned to developer',o.name);toast(o.name+' returned with conditions','ok');VIEWS.pipeline();buildNav()}});
+    document.querySelectorAll('[data-op-media]').forEach(function(b){b.onclick=function(){go('media');setTimeout(function(){selectMediaProp(b.dataset.opMedia)},30)}});
+  };
+  function opp(id){return S.opps.filter(function(o){return o.id===id})[0]}
+
+  /* -------- PROPERTIES & MEDIA (image loading) -------- */
+  var mediaSel=null;
+  VIEWS.media=function(){
+    if(!mediaSel)mediaSel=S.opps[0].id;
+    var ed=manage('media');
+    $('view').innerHTML=head('Properties & media','Load and organise property images and construction-stage photos. '+(ed?'Drag & drop or choose files — images are auto-optimised and saved.':'(view only)'))+
+      '<div class="grid" style="grid-template-columns:260px 1fr;gap:16px" id="mediaGrid">'+
+        '<div class="card pad"><b class="disp" style="font-size:14px">Properties</b><div class="medlist" style="margin-top:10px" id="mediaProps"></div></div>'+
+        '<div id="mediaPanel"></div>'+
+      '</div>';
+    if(window.innerWidth<900)$('mediaGrid').style.gridTemplateColumns='1fr';
+    $('mediaProps').innerHTML=S.opps.map(function(o){var m=media[o.id]||{};var n=(m.gallery?m.gallery.length:0)+Object.keys(m.stages||{}).reduce(function(a,k){return a+m.stages[k].length},0);
+      return '<div class="medrow'+(o.id===mediaSel?' on':'')+'" data-mp="'+o.id+'"><div class="mini" style="'+(m.cover?'background-image:url('+m.cover+')':'')+'"></div><div><b>'+esc(o.name)+'</b><br><span>'+esc(o.loc)+' · '+n+' image'+(n===1?'':'s')+'</span></div></div>'}).join('');
+    document.querySelectorAll('[data-mp]').forEach(function(b){b.onclick=function(){selectMediaProp(b.dataset.mp)}});
+    renderMediaPanel();
+  };
+  function selectMediaProp(id){mediaSel=id;if(section!=='media'){go('media');return}VIEWS.media()}
+  function renderMediaPanel(){
+    var o=opp(mediaSel),m=mediaFor(mediaSel),ed=manage('media');
+    var html='<div class="card pad" style="margin-bottom:14px">'+
+      '<div class="cover" style="'+(m.cover?'background-image:url('+m.cover+')':'background:#c7d2dc')+'"><div class="ct"><div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;opacity:.85">'+esc(o.loc)+' · '+esc(o.dev)+'</div><div class="disp" style="font-size:22px">'+esc(o.name)+'</div></div></div>'+
+      (ed?'<div class="row" style="margin-top:10px"><button class="btn btn-ghost sm" id="coverBtn">📷 '+(m.cover?'Replace':'Set')+' cover image</button>'+(m.cover?'<button class="btn btn-ghost sm" id="coverClear">Remove cover</button>':'')+'<span class="hint" style="margin-left:auto">Shown on the public listing hero</span></div>':'')+
+    '</div>';
+    // gallery
+    html+='<div class="card pad" style="margin-bottom:14px"><div class="row between"><b class="disp" style="font-size:15px">Property gallery</b><span class="hint">'+m.gallery.length+' image'+(m.gallery.length===1?'':'s')+'</span></div>';
+    if(ed)html+='<div class="dropzone" id="galDrop" style="margin-top:10px"><div class="big">🖼️</div><h4>Drag &amp; drop images here</h4><p>or <b>click to choose</b> — JPG / PNG, multiple at once. Auto-optimised for fast loading.</p><input type="file" id="galInput" accept="image/*" multiple hidden></div>';
+    html+='<div class="thumbs" id="galThumbs">'+galleryThumbs(m,ed)+'</div>';
+    if(!m.gallery.length&&!ed)html+='<div class="empty">No gallery images yet.</div>';
+    html+='</div>';
+    // stages
+    html+='<div class="card pad"><div class="row between" style="margin-bottom:6px"><b class="disp" style="font-size:15px">Construction stages</b><span class="hint">Current stage: '+esc(o.stage)+'</span></div>';
+    html+=STAGES.map(function(st,i){var arr=(m.stages[i]||[]);var done=i<o.stageIdx,now=i===o.stageIdx;
+      return '<div class="stagecard"><div class="sh"><div class="row" style="gap:8px"><span class="pill '+(done?'good':now?'attn':'neu')+'">'+(done?'Done':now?'Current':'Upcoming')+'</span><b>'+(i+1)+'. '+esc(st)+'</b></div>'+
+        '<div class="row" style="gap:8px"><span class="hint">'+arr.length+' photo'+(arr.length===1?'':'s')+'</span>'+(ed?'<button class="btn btn-ghost xs" data-stage-add="'+i+'">+ Add photos</button>':'')+'</div></div>'+
+        (arr.length?'<div class="thumbs">'+arr.map(function(g){return stageThumb(i,g,ed)}).join('')+'</div>':'<div class="hint">No evidence photos loaded'+(ed?' — add site progress images.':'.')+'</div>')+
+        '<input type="file" id="stageInput'+i+'" accept="image/*" multiple hidden></div>'}).join('');
+    html+='</div>';
+    $('mediaPanel').innerHTML=html;
+    wireMedia(o,m,ed);
+  }
+  function galleryThumbs(m,ed){return m.gallery.map(function(g){return '<div class="thumb"><div class="im" style="background-image:url('+g.src+')"></div>'+
+    (ed?'<button class="star'+(m.cover===g.src?' on':'')+'" data-setcover="'+g.id+'" title="Set as cover">★</button><button class="x" data-delgal="'+g.id+'">✕</button>':'')+
+    '<div class="cap"><input value="'+esc(g.cap||'')+'" data-capgal="'+g.id+'" placeholder="Caption…" '+(ed?'':'disabled')+'></div></div>'}).join('')}
+  function stageThumb(i,g,ed){return '<div class="thumb"><div class="im" style="background-image:url('+g.src+')"></div>'+
+    (ed?'<button class="x" data-delstage="'+i+':'+g.id+'">✕</button>':'')+
+    '<div class="cap"><input value="'+esc(g.cap||'')+'" data-capstage="'+i+':'+g.id+'" placeholder="Note / date…" '+(ed?'':'disabled')+'></div></div>'}
+  function wireMedia(o,m,ed){
+    if(!ed)return;
+    var cb=$('coverBtn'); if(cb)cb.onclick=function(){var inp=document.createElement('input');inp.type='file';inp.accept='image/*';inp.onchange=function(){ingest(inp.files,function(src){m.cover=src},function(){audit('Updated cover image',o.name);toast('Cover image updated','ok');renderMediaPanel();VIEWS.media&&null;$('mediaProps')&&refreshMediaList()})};inp.click()};
+    var cc=$('coverClear'); if(cc)cc.onclick=function(){m.cover='';saveMedia();audit('Removed cover image',o.name);renderMediaPanel();refreshMediaList()};
+    // gallery
+    var drop=$('galDrop'),gi=$('galInput');
+    if(drop){drop.onclick=function(){gi.click()};
+      drop.ondragover=function(e){e.preventDefault();drop.classList.add('drag')};
+      drop.ondragleave=function(){drop.classList.remove('drag')};
+      drop.ondrop=function(e){e.preventDefault();drop.classList.remove('drag');addGallery(e.dataTransfer.files)};
+      gi.onchange=function(){addGallery(gi.files)};
+    }
+    function addGallery(files){ingest(files,function(src){m.gallery.push({id:uid(),src:src,cap:''})},function(n){audit('Added '+n+' gallery image'+(n===1?'':'s'),o.name);toast(n+' image'+(n===1?'':'s')+' added','ok');renderMediaPanel();refreshMediaList()})}
+    document.querySelectorAll('[data-delgal]').forEach(function(b){b.onclick=function(){m.gallery=m.gallery.filter(function(g){return g.id!==b.dataset.delgal});saveMedia();audit('Removed gallery image',o.name);renderMediaPanel();refreshMediaList()}});
+    document.querySelectorAll('[data-setcover]').forEach(function(b){b.onclick=function(){var g=m.gallery.filter(function(x){return x.id===b.dataset.setcover})[0];if(g){m.cover=g.src;saveMedia();audit('Set cover image',o.name);toast('Cover set','ok');renderMediaPanel();refreshMediaList()}}});
+    document.querySelectorAll('[data-capgal]').forEach(function(inp){inp.onchange=function(){var g=m.gallery.filter(function(x){return x.id===inp.dataset.capgal})[0];if(g){g.cap=inp.value;saveMedia()}}});
+    // stages
+    STAGES.forEach(function(st,i){var add=document.querySelector('[data-stage-add="'+i+'"]'),si=$('stageInput'+i);
+      if(add){add.onclick=function(){si.click()};si.onchange=function(){if(!m.stages[i])m.stages[i]=[];ingest(si.files,function(src){m.stages[i].push({id:uid(),src:src,cap:''})},function(n){audit('Added '+n+' stage photo'+(n===1?'':'s'),o.name+' · '+st);toast(n+' photo'+(n===1?'':'s')+' added to '+st,'ok');renderMediaPanel();refreshMediaList()})}}
+    });
+    document.querySelectorAll('[data-delstage]').forEach(function(b){b.onclick=function(){var p=b.dataset.delstage.split(':'),i=+p[0];m.stages[i]=(m.stages[i]||[]).filter(function(g){return g.id!==p[1]});saveMedia();audit('Removed stage photo',o.name);renderMediaPanel();refreshMediaList()}});
+    document.querySelectorAll('[data-capstage]').forEach(function(inp){inp.onchange=function(){var p=inp.dataset.capstage.split(':'),i=+p[0];var g=(m.stages[i]||[]).filter(function(x){return x.id===p[1]})[0];if(g){g.cap=inp.value;saveMedia()}}});
+  }
+  function refreshMediaList(){var el=$('mediaProps');if(!el)return;
+    el.innerHTML=S.opps.map(function(o){var m=media[o.id]||{};var n=(m.gallery?m.gallery.length:0)+Object.keys(m.stages||{}).reduce(function(a,k){return a+m.stages[k].length},0);
+      return '<div class="medrow'+(o.id===mediaSel?' on':'')+'" data-mp="'+o.id+'"><div class="mini" style="'+(m.cover?'background-image:url('+m.cover+')':'')+'"></div><div><b>'+esc(o.name)+'</b><br><span>'+esc(o.loc)+' · '+n+' image'+(n===1?'':'s')+'</span></div></div>'}).join('');
+    document.querySelectorAll('[data-mp]').forEach(function(b){b.onclick=function(){selectMediaProp(b.dataset.mp)}});
+  }
+
+  /* -------- CONTENT -------- */
+  VIEWS.content=function(){
+    var ed=manage('content');
+    $('view').innerHTML=head('Content management','Curate the public marketplace — homepage features, opportunities and controlled copy.')+
+      '<div class="card"><div class="tblwrap"><table><thead><tr><th>Content block</th><th>Status</th><th>Detail</th><th></th></tr></thead><tbody>'+
+      S.content.map(function(c){return '<tr><td><b>'+esc(c.title)+'</b></td><td>'+pill(c.status)+'</td><td style="color:var(--muted)">'+esc(c.note)+'</td>'+
+        '<td style="text-align:right;white-space:nowrap">'+(ed?'<button class="btn btn-ghost xs" data-ce="'+c.id+'">Edit</button> <button class="btn '+(c.status==='Published'?'btn-ghost':'btn-green')+' xs" data-ct="'+c.id+'">'+(c.status==='Published'?'Unpublish':'Publish')+'</button>':'')+'</td></tr>'}).join('')+
+      '</tbody></table></div></div>'+
+      '<div class="card pad" style="margin-top:14px"><b class="disp" style="font-size:14px">Content tone guardrails</b><p class="hint" style="margin-top:6px">Use “co-development opportunity”, “participation”, “target / indicative”, “verified with stated basis”. Never “guaranteed investment”, “certain returns” or “risk-free”. Copy is reviewed per jurisdiction.</p></div>';
+    if(ed){document.querySelectorAll('[data-ct]').forEach(function(b){b.onclick=function(){var c=S.content.filter(function(x){return x.id===b.dataset.ct})[0];c.status=c.status==='Published'?'Draft':'Published';audit(c.status==='Published'?'Published content':'Unpublished content',c.title);toast(c.title+' '+(c.status==='Published'?'published':'unpublished'),'ok');VIEWS.content()}});
+      document.querySelectorAll('[data-ce]').forEach(function(b){b.onclick=function(){var c=S.content.filter(function(x){return x.id===b.dataset.ce})[0];
+        openDrawer('Edit content','<div class="field"><label>Title</label><input id="ceT" value="'+esc(c.title)+'"></div><div class="field"><label>Detail / copy</label><textarea id="ceN" rows="4">'+esc(c.note)+'</textarea></div>',
+          '<span style="flex:1"></span><button class="btn btn-ghost" id="ceCancel">Cancel</button><button class="btn btn-bronze" id="ceSave">Save</button>');
+        $('ceCancel').onclick=closeDrawer;$('ceSave').onclick=function(){c.title=$('ceT').value;c.note=$('ceN').value;audit('Edited content',c.title);toast('Content saved','ok');VIEWS.content();closeDrawer()};
+      }});
+    }
+  };
+
+  /* -------- COMPLIANCE -------- */
+  VIEWS.compliance=function(){
+    var ed=manage('compliance');
+    $('view').innerHTML=head('Compliance / KYC','Identity, AML and risk exception queue. Approvals are audited.')+
+      '<div class="card"><div class="tblwrap"><table><thead><tr><th>Applicant</th><th>Type</th><th>Flag</th><th>Status</th><th></th></tr></thead><tbody>'+
+      (S.kyc.length?S.kyc.map(function(k){return '<tr><td><b>'+esc(k.name)+'</b></td><td>'+esc(k.type)+'</td><td style="color:var(--muted)">'+esc(k.flag)+'</td><td>'+pill(k.status)+'</td>'+
+        '<td style="text-align:right;white-space:nowrap">'+(ed?'<button class="btn btn-green xs" data-kok="'+k.id+'">Approve</button> <button class="btn btn-red xs" data-krej="'+k.id+'">Reject</button>':'')+'</td></tr>'}).join('')
+        :'<tr><td colspan="5"><div class="empty">Queue clear.</div></td></tr>')+
+      '</tbody></table></div></div>';
+    if(ed){document.querySelectorAll('[data-kok]').forEach(function(b){b.onclick=function(){resolveKyc(b.dataset.kok,true)}});
+      document.querySelectorAll('[data-krej]').forEach(function(b){b.onclick=function(){resolveKyc(b.dataset.krej,false)}});}
+  };
+  function resolveKyc(id,ok){var k=S.kyc.filter(function(x){return x.id===id})[0];if(!k)return;
+    var c=S.clients.filter(function(x){return x.name===k.name})[0];if(c){c.kyc=ok?'Verified':'Failed Verification';if(!ok)c.status='Suspended';else if(c.status==='Under Review')c.status='Active'}
+    S.kyc=S.kyc.filter(function(x){return x.id!==id});
+    audit(ok?'KYC approved':'KYC rejected',k.name);toast(k.name+(ok?' verified':' rejected'),ok?'ok':'err');VIEWS.compliance();buildNav()}
+
+  /* -------- TRANSACTIONS -------- */
+  VIEWS.transactions=function(){
+    $('view').innerHTML=head('Transaction operations','Commitments, allocations and agreement status across live developments.')+
+      '<div class="card"><div class="tblwrap"><table><thead><tr><th>Investor</th><th>Development</th><th>Structure</th><th class="num">Committed</th><th>Agreement</th></tr></thead><tbody>'+
+      [['Adaeze Okafor','Marina Heights','SPV equity',76000000,'Signed'],['Adaeze Okafor','The Waterfront','Allocation',65000000,'Signed'],['Ngozi Eze','Marina Heights','SPV equity',76000000,'Signed'],['Tunde Bello','Ivory Residences','Allocation',45000000,'Awaiting Signature']]
+      .map(function(r){return '<tr><td><b>'+r[0]+'</b></td><td>'+r[1]+'</td><td>'+r[2]+'</td><td class="num">'+money(r[3])+'</td><td>'+pill(r[4])+'</td></tr>'}).join('')+
+      '</tbody></table></div></div>';
+  };
+
+  /* -------- FINANCE -------- */
+  VIEWS.finance=function(){
+    var ed=manage('finance');
+    $('view').innerHTML=head('Finance & escrow','Capital calls, reconciliation and milestone releases. Segregation of duties + maker-checker.')+
+      '<div class="card pad" style="margin-bottom:12px"><div class="row" style="gap:6px;flex-wrap:wrap">'+['Capital Call','Investor Instruction','Bank/Escrow Receipt','Reconciliation','Milestone Eligibility','Authorised Release','Audit Event'].map(function(s){return '<span class="pill neu">'+s+'</span>'}).join('')+'</div></div>'+
+      '<div class="card"><div class="tblwrap"><table><thead><tr><th>Reference</th><th>Investor</th><th>Development</th><th>Milestone</th><th class="num">Amount</th><th>Status</th><th></th></tr></thead><tbody>'+
+      S.finance.map(function(f){var act='';
+        if(ed){ if(f.status==='Awaiting Payment')act='<button class="btn btn-ghost xs" data-fr="'+f.ref+'">Mark received</button>';
+          else if(f.status==='Received')act='<button class="btn btn-ghost xs" data-fc="'+f.ref+'">Reconcile</button>';
+          else if(f.status==='Release Approved')act='<button class="btn btn-green xs" data-frel="'+f.ref+'">Authorise release</button>'; }
+        return '<tr><td><b class="num">'+esc(f.ref)+'</b></td><td>'+esc(f.investor)+'</td><td>'+esc(f.opp)+'</td><td>'+esc(f.ms)+'</td><td class="num">'+money(f.amt)+'</td><td>'+pill(f.status)+'</td><td style="text-align:right">'+act+'</td></tr>'}).join('')+
+      '</tbody></table></div></div>'+
+      '<div class="card pad" style="margin-top:12px"><span class="hint">🔒 No single administrator can create, approve <b>and</b> release a sensitive instruction. Releases require a certified milestone plus a second approver; every action writes an immutable audit event.</span></div>';
+    if(ed){
+      document.querySelectorAll('[data-fr]').forEach(function(b){b.onclick=function(){var f=fin(b.dataset.fr);f.status='Received';audit('Marked payment received',f.ref);toast(f.ref+' received','ok');VIEWS.finance();buildNav()}});
+      document.querySelectorAll('[data-fc]').forEach(function(b){b.onclick=function(){var f=fin(b.dataset.fc);f.status='Reconciled';audit('Reconciled payment',f.ref);toast(f.ref+' reconciled','ok');VIEWS.finance()}});
+      document.querySelectorAll('[data-frel]').forEach(function(b){b.onclick=function(){var f=fin(b.dataset.frel);if(!confirm('Authorise escrow release for '+f.ref+' ('+money(f.amt)+')? This requires maker-checker and is audited.'))return;f.status='Released';audit('Escrow release authorised',f.ref+' · '+f.opp);toast('Release authorised — '+f.ref,'ok');VIEWS.finance();buildNav()}});
+    }
+  };
+  function fin(ref){return S.finance.filter(function(f){return f.ref===ref})[0]}
+
+  /* -------- ASSURANCE -------- */
+  VIEWS.assurance=function(){
+    var ed=manage('assurance');
+    $('view').innerHTML=head('Development assurance','Milestone evidence review & QS/professional certification. Certified milestones unlock capital calls.')+
+      '<div class="card"><div class="tblwrap"><table><thead><tr><th>Development</th><th>Milestone</th><th>Developer</th><th>Status</th><th></th></tr></thead><tbody>'+
+      S.assurance.map(function(a,i){var act=ed&&a.status!=='Certified'?'<button class="btn btn-green xs" data-cert="'+i+'">Certify</button> <button class="btn btn-red xs" data-rejc="'+i+'">Reject evidence</button>':'';
+        return '<tr><td><b>'+esc(a.opp)+'</b></td><td>'+esc(a.ms)+'</td><td>'+esc(a.dev)+'</td><td>'+pill(a.status)+'</td><td style="text-align:right;white-space:nowrap">'+act+'</td></tr>'}).join('')+
+      '</tbody></table></div></div>'+
+      '<div class="card pad" style="margin-top:12px"><span class="hint">Tip: load the milestone’s site photos under <b>Properties &amp; media → Construction stages</b>, then certify here. Avoid unsupported “percentage complete” — evidence-led only.</span></div>';
+    if(ed){document.querySelectorAll('[data-cert]').forEach(function(b){b.onclick=function(){var a=S.assurance[+b.dataset.cert];a.status='Certified';audit('Milestone certified',a.opp+' · '+a.ms);toast(a.ms+' certified for '+a.opp,'ok');VIEWS.assurance();buildNav()}});
+      document.querySelectorAll('[data-rejc]').forEach(function(b){b.onclick=function(){var a=S.assurance[+b.dataset.rejc];a.status='Under Review';audit('Milestone evidence returned',a.opp+' · '+a.ms);toast('Evidence returned to developer','ok');VIEWS.assurance()}});}
+  };
+
+  /* -------- REPORTING -------- */
+  VIEWS.reporting=function(){
+    var funnel=[['Leads',1240],['Qualified',412],['KYC verified',286],['Deal-room access',198],['Committed',64],['Funded',41]];
+    var maxF=funnel[0][1];
+    $('view').innerHTML=head('Reporting','Acquisition funnel, capital pipeline and operational SLA.')+
+      '<div class="grid" style="grid-template-columns:1.2fr 1fr" id="repGrid">'+
+        '<div class="card pad"><b class="disp" style="font-size:15px">Acquisition funnel</b><div style="margin-top:12px">'+
+          funnel.map(function(f){var w=Math.round(f[1]/maxF*100);return '<div style="margin-bottom:9px"><div class="row between" style="font-size:12.5px"><span>'+f[0]+'</span><b class="num">'+f[1].toLocaleString()+'</b></div><div style="height:9px;background:var(--ground);border-radius:6px;overflow:hidden;margin-top:3px"><i style="display:block;height:100%;width:'+w+'%;background:linear-gradient(90deg,var(--bronze),var(--bronze-2))"></i></div></div>'}).join('')+
+        '</div></div>'+
+        '<div class="card pad"><b class="disp" style="font-size:15px">Capital pipeline</b>'+
+          '<div class="kv"><span>Committed capital</span><b class="num">'+money(258000000)+'</b></div>'+
+          '<div class="kv"><span>Funded to date</span><b class="num">'+money(179000000)+'</b></div>'+
+          '<div class="kv"><span>Outstanding capital calls</span><b class="num">'+money(43350000)+'</b></div>'+
+          '<div class="kv"><span>Live developments</span><b class="num">6</b></div>'+
+          '<div class="sec-title">Operational SLA</div>'+
+          '<div class="kv"><span>Avg. registration → qualification</span><b>1.8 days</b></div>'+
+          '<div class="kv"><span>KYC queue ageing</span><b>3 open · oldest 2 days</b></div>'+
+          '<div class="kv"><span>Reconciliation exceptions</span><b>1 open</b></div>'+
+        '</div>'+
+      '</div>';
+    if(window.innerWidth<900)$('repGrid').style.gridTemplateColumns='1fr';
+  };
+
+  /* -------- AUDIT -------- */
+  VIEWS.audit=function(){
+    $('view').innerHTML=head('Audit log','Append-only record of material administrative, financial and compliance events.')+
+      '<div class="card pad" style="margin-bottom:12px"><div class="row"><input id="auditQ" placeholder="Filter by user, action or target…" style="flex:1"><button class="btn btn-ghost sm" id="auditExport">Export CSV</button></div></div>'+
+      '<div class="card"><div class="tblwrap"><table><thead><tr><th>Timestamp</th><th>Actor</th><th>Action</th><th>Target</th></tr></thead><tbody id="auditRows"></tbody></table></div></div>';
+    function paint(q){q=(q||'').toLowerCase();$('auditRows').innerHTML=S.audit.filter(function(a){return !q||(a.who+' '+a.act+' '+a.target).toLowerCase().indexOf(q)>=0}).map(function(a){
+      return '<tr><td class="num" style="color:var(--muted)">'+esc(a.t)+'</td><td><b>'+esc(a.who)+'</b></td><td>'+esc(a.act)+'</td><td style="color:var(--muted)">'+esc(a.target)+'</td></tr>'}).join('')}
+    paint('');$('auditQ').oninput=function(){paint(this.value)};
+    $('auditExport').onclick=function(){audit('Exported audit log','CSV');toast('Audit log exported (demo)','ok')};
+  };
+
+  /* -------- CONFIG -------- */
+  VIEWS.config=function(){
+    var ed=manage('config');
+    $('view').innerHTML=head('Configuration','Jurisdictions, document templates, feature flags and workflow rules — configuration-driven, not hard-coded.')+
+      '<div class="grid" style="grid-template-columns:1fr 1fr" id="cfgGrid">'+
+        '<div class="card pad"><b class="disp" style="font-size:15px">Feature flags</b><div style="margin-top:10px">'+
+          S.flags.map(function(f){return '<div class="row between" style="padding:8px 0;border-bottom:1px solid var(--line-2)"><div><b style="font-size:13px">'+esc(f.label)+'</b><br><span class="hint num">'+esc(f.k)+'</span></div><button class="toggle'+(f.on?' on':'')+'" data-flag="'+f.k+'" '+(ed?'':'disabled')+'></button></div>'}).join('')+
+        '</div></div>'+
+        '<div class="card pad"><b class="disp" style="font-size:15px">Jurisdictions</b><div class="tblwrap" style="margin-top:8px"><table><thead><tr><th>Market</th><th>Cur.</th><th>Entity</th><th>Status</th></tr></thead><tbody>'+
+          S.jurisdictions.map(function(j){return '<tr><td><b>'+esc(j.m)+'</b></td><td>'+esc(j.cur)+'</td><td style="color:var(--muted)">'+esc(j.entity)+'</td><td>'+pill(j.status)+'</td></tr>'}).join('')+
+        '</tbody></table></div></div>'+
+      '</div>'+
+      '<div class="card pad" style="margin-top:14px"><b class="disp" style="font-size:15px">Document &amp; agreement templates</b><div class="tblwrap" style="margin-top:8px"><table><thead><tr><th>Template</th><th>Version</th><th>Status</th><th></th></tr></thead><tbody>'+
+        S.templates.map(function(t){return '<tr><td><b>'+esc(t.t)+'</b></td><td class="num">'+esc(t.v)+'</td><td>'+pill(t.status)+'</td><td style="text-align:right">'+(ed?'<button class="btn btn-ghost xs">Manage</button>':'')+'</td></tr>'}).join('')+
+      '</tbody></table></div></div>';
+    if(window.innerWidth<900)$('cfgGrid').style.gridTemplateColumns='1fr';
+    if(ed)document.querySelectorAll('[data-flag]').forEach(function(b){b.onclick=function(){var f=S.flags.filter(function(x){return x.k===b.dataset.flag})[0];f.on=!f.on;b.classList.toggle('on',f.on);audit('Toggled feature flag',f.k+' → '+(f.on?'on':'off'));toast(f.label+' '+(f.on?'enabled':'disabled'),'ok')}});
+  };
+
+  /* -------- INCIDENTS -------- */
+  VIEWS.incidents=function(){
+    var ed=manage('incidents');
+    $('view').innerHTML=head('Incidents & disputes','Track operational incidents, complaints and disputes to resolution.')+
+      (ed?'<div class="row between" style="margin-bottom:10px"><span class="hint">'+S.incidents.length+' open</span><button class="btn btn-bronze sm" id="incAdd">+ Log incident</button></div>':'')+
+      '<div class="card"><div class="tblwrap"><table><thead><tr><th>Ref</th><th>Subject</th><th>Priority</th><th>Owner</th><th>Status</th><th></th></tr></thead><tbody>'+
+      S.incidents.map(function(x,i){return '<tr><td><b class="num">'+esc(x.id)+'</b></td><td>'+esc(x.subj)+'</td><td>'+pill(x.pri)+'</td><td>'+esc(x.owner)+'</td><td>'+pill(x.status)+'</td>'+
+        '<td style="text-align:right">'+(ed?'<button class="btn btn-green xs" data-inc="'+i+'">Resolve</button>':'')+'</td></tr>'}).join('')+
+      '</tbody></table></div></div>';
+    if(ed){var ia=$('incAdd');if(ia)ia.onclick=function(){var s=prompt('Incident subject:');if(!s)return;S.incidents.unshift({id:'INC-'+(105+S.incidents.length),subj:s,pri:'Attention',status:'Under Review',owner:ROLES[role].name.split(' ')[0]});audit('Logged incident',s);toast('Incident logged','ok');VIEWS.incidents();buildNav()};
+      document.querySelectorAll('[data-inc]').forEach(function(b){b.onclick=function(){var x=S.incidents[+b.dataset.inc];audit('Resolved incident',x.id);S.incidents.splice(+b.dataset.inc,1);toast(x.id+' resolved','ok');VIEWS.incidents();buildNav()}});}
+  };
+
+  /* ---------------- BOOT ---------------- */
+  renderRoles();
+  var saved=sessionStorage.getItem('codev-admin');
+  if(saved&&ROLES[saved])login(saved);
+  window.addEventListener('resize',function(){ if(section==='media')VIEWS.media&&renderMediaPanel(); });
+})();
+</script>
+</body>
+</html>
