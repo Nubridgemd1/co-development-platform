@@ -748,39 +748,85 @@
       '</tbody></table></div></div>';
   };
 
-  /* -------- FINANCE -------- */
+  /* -------- editable state persistence (finance + assurance timelines) -------- */
+  var EDIT_KEY='codev_admin_edits_v1';
+  (function(){try{var e=JSON.parse(localStorage.getItem(EDIT_KEY));if(e){if(e.finance)S.finance=e.finance;if(e.assurance)S.assurance=e.assurance;}}catch(x){}})();
+  function saveState(){try{localStorage.setItem(EDIT_KEY,JSON.stringify({finance:S.finance,assurance:S.assurance}))}catch(x){}}
+  var FIN_STATUS=['Awaiting Payment','Received','Reconciled','Held in Escrow','Release Approved','Released'];
+  var ASR_STATUS=['Planned','Evidence Submitted','Under Review','Certified'];
+  function selOpts(a,c){return a.map(function(o){return '<option'+(o===c?' selected':'')+'>'+esc(o)+'</option>'}).join('')}
+  var IEST='width:100%;padding:4px 6px;font-size:12px;border:1px solid var(--line,#d5deea);border-radius:6px';
+
+  /* -------- FINANCE (add / edit / delete capital calls, payments & due dates) -------- */
+  var finEdit=null;
+  function fin(ref){return S.finance.filter(function(f){return f.ref===ref})[0]}
+  function finRow(f){return '<tr data-frow="'+esc(f.ref)+'"><td><b class="num">'+esc(f.ref)+'</b></td>'+
+    '<td><input class="ie" style="'+IEST+'" data-k="investor" value="'+esc(f.investor||'')+'"></td>'+
+    '<td><input class="ie" style="'+IEST+'" data-k="opp" value="'+esc(f.opp||'')+'"></td>'+
+    '<td><input class="ie" style="'+IEST+'" data-k="ms" value="'+esc(f.ms||'')+'"></td>'+
+    '<td><input class="ie" type="date" style="'+IEST+'" data-k="due" value="'+esc(f.due||'')+'"></td>'+
+    '<td><input class="ie num" type="number" style="'+IEST+'" data-k="amt" value="'+(f.amt||0)+'"></td>'+
+    '<td><select class="ie" style="'+IEST+'" data-k="status">'+selOpts(FIN_STATUS,f.status)+'</select></td>'+
+    '<td style="text-align:right;white-space:nowrap"><button class="btn btn-green xs" data-fsave="'+esc(f.ref)+'">Save</button> <button class="btn btn-ghost xs" data-fcancel="1">Cancel</button></td></tr>'}
   VIEWS.finance=function(){
     var ed=manage('finance');
-    $('view').innerHTML=head('Finance & escrow','Capital calls, reconciliation and milestone releases. Segregation of duties + maker-checker.')+
-      '<div class="card pad" style="margin-bottom:12px"><div class="row" style="gap:6px;flex-wrap:wrap">'+['Capital Call','Investor Instruction','Bank/Escrow Receipt','Reconciliation','Milestone Eligibility','Authorised Release','Audit Event'].map(function(s){return '<span class="pill neu">'+s+'</span>'}).join('')+'</div></div>'+
-      '<div class="card"><div class="tblwrap"><table><thead><tr><th>Reference</th><th>Investor</th><th>Development</th><th>Milestone</th><th class="num">Amount</th><th>Status</th><th></th></tr></thead><tbody>'+
-      S.finance.map(function(f){var act='';
-        if(ed){ if(f.status==='Awaiting Payment')act='<button class="btn btn-ghost xs" data-fr="'+f.ref+'">Mark received</button>';
-          else if(f.status==='Received')act='<button class="btn btn-ghost xs" data-fc="'+f.ref+'">Reconcile</button>';
-          else if(f.status==='Release Approved')act='<button class="btn btn-green xs" data-frel="'+f.ref+'">Authorise release</button>'; }
-        return '<tr><td><b class="num">'+esc(f.ref)+'</b></td><td>'+esc(f.investor)+'</td><td>'+esc(f.opp)+'</td><td>'+esc(f.ms)+'</td><td class="num">'+money(f.amt)+'</td><td>'+pill(f.status)+'</td><td style="text-align:right">'+act+'</td></tr>'}).join('')+
-      '</tbody></table></div></div>'+
-      '<div class="card pad" style="margin-top:12px"><span class="hint">🔒 No single administrator can create, approve <b>and</b> release a sensitive instruction. Releases require a certified milestone plus a second approver; every action writes an immutable audit event.</span></div>';
-    if(ed){
-      document.querySelectorAll('[data-fr]').forEach(function(b){b.onclick=function(){var f=fin(b.dataset.fr);f.status='Received';audit('Marked payment received',f.ref);toast(f.ref+' received','ok');VIEWS.finance();buildNav()}});
-      document.querySelectorAll('[data-fc]').forEach(function(b){b.onclick=function(){var f=fin(b.dataset.fc);f.status='Reconciled';audit('Reconciled payment',f.ref);toast(f.ref+' reconciled','ok');VIEWS.finance()}});
-      document.querySelectorAll('[data-frel]').forEach(function(b){b.onclick=function(){var f=fin(b.dataset.frel);if(!confirm('Authorise escrow release for '+f.ref+' ('+money(f.amt)+')? This requires maker-checker and is audited.'))return;f.status='Released';audit('Escrow release authorised',f.ref+' · '+f.opp);toast('Release authorised — '+f.ref,'ok');VIEWS.finance();buildNav()}});
-    }
+    var body=S.finance.map(function(f){
+      if(ed&&finEdit===f.ref) return finRow(f);
+      var act='';
+      if(ed){ if(f.status==='Awaiting Payment')act+='<button class="btn btn-ghost xs" data-fr="'+esc(f.ref)+'">Mark received</button> ';
+        else if(f.status==='Received')act+='<button class="btn btn-ghost xs" data-fc="'+esc(f.ref)+'">Reconcile</button> ';
+        else if(f.status==='Release Approved')act+='<button class="btn btn-green xs" data-frel="'+esc(f.ref)+'">Authorise release</button> ';
+        act+='<button class="btn btn-ghost xs" data-fedit="'+esc(f.ref)+'">Edit</button> <button class="btn btn-ghost xs" data-fdel="'+esc(f.ref)+'">🗑</button>'; }
+      return '<tr><td><b class="num">'+esc(f.ref)+'</b></td><td>'+esc(f.investor)+'</td><td>'+esc(f.opp)+'</td><td>'+esc(f.ms)+'</td><td class="num">'+esc(f.due||'—')+'</td><td class="num">'+money(f.amt)+'</td><td>'+pill(f.status)+'</td><td style="text-align:right;white-space:nowrap">'+act+'</td></tr>'}).join('');
+    $('view').innerHTML=head('Finance & escrow','Capital calls, payments, timelines, reconciliation and milestone releases.')+
+      '<div class="card pad" style="margin-bottom:12px"><div class="spread" style="gap:8px;flex-wrap:wrap"><div class="row" style="gap:6px;flex-wrap:wrap">'+['Capital Call','Payment','Reconciliation','Milestone Eligibility','Authorised Release','Audit Event'].map(function(s){return '<span class="pill neu">'+s+'</span>'}).join('')+'</div>'+(ed?'<button class="btn btn-navy xs" id="finAdd">+ Capital call / payment</button>':'')+'</div></div>'+
+      '<div class="card"><div class="tblwrap"><table><thead><tr><th>Reference</th><th>Investor</th><th>Development</th><th>Milestone</th><th>Due date</th><th class="num">Amount</th><th>Status</th><th></th></tr></thead><tbody>'+body+'</tbody></table></div></div>'+
+      '<div class="card pad" style="margin-top:12px"><span class="hint">🔒 Maker-checker preserved — releases still require a certified milestone + second approver and are audited. Admin can add, edit (amounts, milestones, due dates) and delete capital calls &amp; payments here. Changes persist on this device.</span></div>';
+    if(ed) wireFin();
   };
-  function fin(ref){return S.finance.filter(function(f){return f.ref===ref})[0]}
+  function wireFin(){
+    document.querySelectorAll('[data-fr]').forEach(function(b){b.onclick=function(){var f=fin(b.dataset.fr);f.status='Received';audit('Marked payment received',f.ref);saveState();toast(f.ref+' received','ok');VIEWS.finance();buildNav()}});
+    document.querySelectorAll('[data-fc]').forEach(function(b){b.onclick=function(){var f=fin(b.dataset.fc);f.status='Reconciled';audit('Reconciled payment',f.ref);saveState();toast(f.ref+' reconciled','ok');VIEWS.finance()}});
+    document.querySelectorAll('[data-frel]').forEach(function(b){b.onclick=function(){var f=fin(b.dataset.frel);if(!confirm('Authorise escrow release for '+f.ref+' ('+money(f.amt)+')? Maker-checker + audited.'))return;f.status='Released';audit('Escrow release authorised',f.ref+' · '+f.opp);saveState();toast('Release authorised — '+f.ref,'ok');VIEWS.finance();buildNav()}});
+    document.querySelectorAll('[data-fedit]').forEach(function(b){b.onclick=function(){finEdit=b.dataset.fedit;VIEWS.finance()}});
+    document.querySelectorAll('[data-fdel]').forEach(function(b){b.onclick=function(){var f=fin(b.dataset.fdel);if(!confirm('Delete '+f.ref+'?'))return;S.finance=S.finance.filter(function(x){return x.ref!==f.ref});audit('Capital call deleted',f.ref);saveState();toast('Deleted '+f.ref,'ok');finEdit=null;VIEWS.finance();buildNav()}});
+    document.querySelectorAll('[data-fcancel]').forEach(function(b){b.onclick=function(){finEdit=null;VIEWS.finance()}});
+    document.querySelectorAll('[data-fsave]').forEach(function(b){b.onclick=function(){var ref=b.dataset.fsave,row=document.querySelector('[data-frow="'+ref+'"]'),f=fin(ref);row.querySelectorAll('.ie').forEach(function(inp){var k=inp.dataset.k;f[k]=(k==='amt')?Number(inp.value):inp.value});finEdit=null;audit('Capital call updated',ref);saveState();toast('Saved '+ref,'ok');VIEWS.finance();buildNav()}});
+    var add=document.getElementById('finAdd');if(add)add.onclick=function(){var ref='CC-'+new Date().getFullYear()+'-'+Math.floor(1000+Math.random()*9000);S.finance.unshift({ref:ref,investor:'',opp:'',ms:'',due:'',amt:0,status:'Awaiting Payment'});finEdit=ref;VIEWS.finance()};
+  }
 
   /* -------- ASSURANCE -------- */
+  /* -------- ASSURANCE (add / edit / delete milestone timelines) -------- */
+  var asrEdit=null;
+  function asrRow(a,i){return '<tr data-arow="'+i+'">'+
+    '<td><input class="ie" style="'+IEST+'" data-k="opp" value="'+esc(a.opp||'')+'"></td>'+
+    '<td><input class="ie" style="'+IEST+'" data-k="ms" value="'+esc(a.ms||'')+'"></td>'+
+    '<td><input class="ie" style="'+IEST+'" data-k="dev" value="'+esc(a.dev||'')+'"></td>'+
+    '<td><input class="ie" type="date" style="'+IEST+'" data-k="date" value="'+esc(a.date||'')+'"></td>'+
+    '<td><select class="ie" style="'+IEST+'" data-k="status">'+selOpts(ASR_STATUS,a.status)+'</select></td>'+
+    '<td style="text-align:right;white-space:nowrap"><button class="btn btn-green xs" data-asave="'+i+'">Save</button> <button class="btn btn-ghost xs" data-acancel="1">Cancel</button></td></tr>'}
   VIEWS.assurance=function(){
     var ed=manage('assurance');
-    $('view').innerHTML=head('Development assurance','Milestone evidence review & QS/professional certification. Certified milestones unlock capital calls.')+
-      '<div class="card"><div class="tblwrap"><table><thead><tr><th>Development</th><th>Milestone</th><th>Developer</th><th>Status</th><th></th></tr></thead><tbody>'+
-      S.assurance.map(function(a,i){var act=ed&&a.status!=='Certified'?'<button class="btn btn-green xs" data-cert="'+i+'">Certify</button> <button class="btn btn-red xs" data-rejc="'+i+'">Reject evidence</button>':'';
-        return '<tr><td><b>'+esc(a.opp)+'</b></td><td>'+esc(a.ms)+'</td><td>'+esc(a.dev)+'</td><td>'+pill(a.status)+'</td><td style="text-align:right;white-space:nowrap">'+act+'</td></tr>'}).join('')+
-      '</tbody></table></div></div>'+
-      '<div class="card pad" style="margin-top:12px"><span class="hint">Tip: load the milestone’s site photos under <b>Properties &amp; media → Construction stages</b>, then certify here. Avoid unsupported “percentage complete” — evidence-led only.</span></div>';
-    if(ed){document.querySelectorAll('[data-cert]').forEach(function(b){b.onclick=function(){var a=S.assurance[+b.dataset.cert];a.status='Certified';audit('Milestone certified',a.opp+' · '+a.ms);toast(a.ms+' certified for '+a.opp,'ok');VIEWS.assurance();buildNav()}});
-      document.querySelectorAll('[data-rejc]').forEach(function(b){b.onclick=function(){var a=S.assurance[+b.dataset.rejc];a.status='Under Review';audit('Milestone evidence returned',a.opp+' · '+a.ms);toast('Evidence returned to developer','ok');VIEWS.assurance()}});}
+    var body=S.assurance.map(function(a,i){
+      if(ed&&asrEdit===i) return asrRow(a,i);
+      var act='';
+      if(ed){ if(a.status!=='Certified')act+='<button class="btn btn-green xs" data-cert="'+i+'">Certify</button> <button class="btn btn-red xs" data-rejc="'+i+'">Reject</button> ';
+        act+='<button class="btn btn-ghost xs" data-aedit="'+i+'">Edit</button> <button class="btn btn-ghost xs" data-adel="'+i+'">🗑</button>'; }
+      return '<tr><td><b>'+esc(a.opp)+'</b></td><td>'+esc(a.ms)+'</td><td>'+esc(a.dev)+'</td><td class="num">'+esc(a.date||'—')+'</td><td>'+pill(a.status)+'</td><td style="text-align:right;white-space:nowrap">'+act+'</td></tr>'}).join('');
+    $('view').innerHTML=head('Development assurance','Milestone timelines, evidence review & certification. Certified milestones unlock capital calls.')+
+      '<div class="card pad" style="margin-bottom:12px"><div class="spread" style="gap:8px;flex-wrap:wrap"><span class="hint">Add, edit (milestone, developer, target date), certify or delete milestone timelines. Changes persist on this device.</span>'+(ed?'<button class="btn btn-navy xs" id="asrAdd">+ Milestone</button>':'')+'</div></div>'+
+      '<div class="card"><div class="tblwrap"><table><thead><tr><th>Development</th><th>Milestone</th><th>Developer</th><th>Target date</th><th>Status</th><th></th></tr></thead><tbody>'+body+'</tbody></table></div></div>';
+    if(ed) wireAsr();
   };
+  function wireAsr(){
+    document.querySelectorAll('[data-cert]').forEach(function(b){b.onclick=function(){var a=S.assurance[+b.dataset.cert];a.status='Certified';audit('Milestone certified',a.opp+' · '+a.ms);saveState();toast(a.ms+' certified for '+a.opp,'ok');VIEWS.assurance();buildNav()}});
+    document.querySelectorAll('[data-rejc]').forEach(function(b){b.onclick=function(){var a=S.assurance[+b.dataset.rejc];a.status='Under Review';audit('Milestone evidence returned',a.opp+' · '+a.ms);saveState();toast('Evidence returned','ok');VIEWS.assurance()}});
+    document.querySelectorAll('[data-aedit]').forEach(function(b){b.onclick=function(){asrEdit=+b.dataset.aedit;VIEWS.assurance()}});
+    document.querySelectorAll('[data-adel]').forEach(function(b){b.onclick=function(){var i=+b.dataset.adel,a=S.assurance[i];if(!confirm('Delete milestone '+a.ms+' ('+a.opp+')?'))return;S.assurance.splice(i,1);audit('Milestone removed',a.opp+' · '+a.ms);saveState();toast('Milestone removed','ok');asrEdit=null;VIEWS.assurance();buildNav()}});
+    document.querySelectorAll('[data-acancel]').forEach(function(b){b.onclick=function(){asrEdit=null;VIEWS.assurance()}});
+    document.querySelectorAll('[data-asave]').forEach(function(b){b.onclick=function(){var i=+b.dataset.asave,row=document.querySelector('[data-arow="'+i+'"]'),a=S.assurance[i];row.querySelectorAll('.ie').forEach(function(inp){a[inp.dataset.k]=inp.value});asrEdit=null;audit('Milestone updated',a.opp+' · '+a.ms);saveState();toast('Milestone saved','ok');VIEWS.assurance();buildNav()}});
+    var add=document.getElementById('asrAdd');if(add)add.onclick=function(){S.assurance.unshift({opp:'',ms:'',dev:'',date:'',status:'Planned'});asrEdit=0;VIEWS.assurance()};
+  }
 
   /* -------- REPORTING -------- */
   VIEWS.reporting=function(){
