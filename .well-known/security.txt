@@ -1,0 +1,8 @@
+Contact: mailto:security@codevproperty.com
+Expires: 2027-08-20T00:00:00.000Z
+Preferred-Languages: en
+Canonical: https://codevproperty.com/.well-known/security.txt
+Policy: https://codevproperty.com/
+# CoDevelop — Property Co-Development.
+# This site is an interactive prototype/preview (illustrative sample data — not a live
+# capital-taking platform). Please report any security issues to the contact above.
