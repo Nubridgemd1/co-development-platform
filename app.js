@@ -23,10 +23,10 @@
     const feat = D.opportunities.filter(o=>!o.pending).slice(0,3);
     return `
     <section class="hero"><div class="wrap">
-      <span class="eyebrow">🏛️ Nigeria MVP · Ikoyi · Victoria Island · Lekki · Ikeja GRA</span>
-      <h1>Co-develop premium property — <em>before</em> the developer's margin.</h1>
-      <p class="lead">Discover verified developments, qualify privately, structure through professional legal, fund on milestones and monitor construction to ownership — all in one governed digital journey.</p>
-      <div class="cta"><a class="btn btn-bronze" href="#/opportunities">Explore opportunities</a><a class="btn btn-outline" href="#/how">How co-development works</a></div>
+      <span class="eyebrow" style="letter-spacing:.12em;text-transform:uppercase">🌍 Co-development · Property · Global access</span>
+      <h1>Co-develop <em>exceptional</em> property.<br>Participate from the start.</h1>
+      <p class="lead">CoDev brings buyers, developers and capital together through a transparent, professionally governed platform — creating access to carefully selected property developments from inception to completion.</p>
+      <div class="cta"><a class="btn btn-bronze" href="#/opportunities">Explore Developments</a><a class="btn btn-outline" href="#/how">How CoDev Works</a></div>
       <div class="flow">${['Discover','Qualify','Verify','Deal Room','Commit','Fund','Build','Monitor','Own / Exit'].map(s=>`<span>${s}</span>`).join('')}</div>
       <div class="hero-stats">
         <div><div class="n">4</div><div class="l">Prime Lagos markets</div></div>
