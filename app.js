@@ -29,7 +29,7 @@
       <div class="cta"><a class="btn btn-bronze" href="#/opportunities">Explore Developments</a><a class="btn btn-outline" href="#/how">How CoDev Works</a></div>
       <div class="flow">${['Discover','Qualify','Verify','Deal Room','Commit','Fund','Build','Monitor','Own / Exit'].map(s=>`<span>${s}</span>`).join('')}</div>
       <div class="hero-stats">
-        <div><div class="n">4</div><div class="l">Prime Lagos markets</div></div>
+        <div><div class="n">4</div><div class="l">Curated prime markets<br><span style="opacity:.72">Lagos today · UK/US roadmap</span></div></div>
         <div><div class="n">${D.opportunities.length}</div><div class="l">Curated opportunities</div></div>
         <div><div class="n">${Object.keys(D.developers).length}</div><div class="l">Verified developers</div></div>
         <div><div class="n">Milestone</div><div class="l">Escrow-governed funding</div></div>
